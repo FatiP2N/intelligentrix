@@ -45,6 +45,8 @@ button,input,select{font:inherit;color:inherit}
 .brand{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .brand h1{font-family:var(--f-display);font-weight:700;font-size:1.6rem;margin:0;letter-spacing:-.01em}
 .brand h1 span{color:var(--accent)}
+.logo-img{display:block;width:auto;max-width:60vw;object-fit:contain;flex:none}
+.brand .logo-img+.logo{margin-left:-4px}
 .logo{display:flex;flex-direction:column;line-height:1.1;min-width:0}
 .logo .tagline{font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:3px;font-weight:500}
 .tabs{display:flex;flex-wrap:wrap;max-width:100%;min-width:0;gap:2px;background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:2px}
@@ -94,6 +96,16 @@ form.query.wq select,form.query.wq #wcode{width:100%}
 
 /* Import */
 .importer{display:grid;gap:12px}
+body.mode-file .top{position:static}
+.apiq{grid-template-columns:minmax(0,1fr);background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:grid;gap:8px}
+.apiq h3{font-family:var(--f-display);font-size:1.05rem;margin:0}
+.aqform{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto auto auto;gap:8px;align-items:end}
+.apiq,.aqform>*{min-width:0}.aqform select,.aqform input{width:100%}
+@media (max-width:980px){.aqform{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.aqform .field.q,.aqform .go{grid-column:1/-1}}
+.apiq .chk{padding:0;font-size:.85rem}
+.apiq .note{margin:0}
+.aqmsg{margin:0;font-size:.88rem}.aqmsg:empty{display:none}.aqmsg.err{color:var(--bad)}.aqmsg.ok{color:var(--good)}
+.aqmsg button{margin-left:6px}
 .drop{border:1.5px dashed var(--line);border-radius:var(--r);padding:16px;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;background:var(--paper)}
 .drop.over{border-color:var(--accent);background:var(--accent-soft)}
 .drop strong{font-family:var(--f-display);font-size:1.05rem}
@@ -116,7 +128,10 @@ form.query.wq select,form.query.wq #wcode{width:100%}
 /* Settings */
 .settings{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-top:16px;display:grid;gap:12px}
 .settings h2{font-family:var(--f-display);margin:0;font-size:1.15rem}
-.settings .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.settings{grid-template-columns:minmax(0,1fr)}
+.settings .chk,.apiq .chk{white-space:normal;align-items:flex-start}
+.settings .grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+@media (max-width:640px){.settings .grid2{grid-template-columns:minmax(0,1fr)}}
 @media (max-width:700px){.settings .grid2{grid-template-columns:1fr}}
 .settings p{margin:0;color:var(--muted);font-size:.85rem;max-width:75ch}
 .settings .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
@@ -392,6 +407,32 @@ footer p{max-width:90ch;margin:.3em 0}
         <span class="note" data-i18n="imp.note"></span>
       </div>
       <div class="files" id="fileList" hidden></div>
+      <section class="apiq" id="apiq">
+        <h3 data-i18n="aq.title"></h3>
+        <form class="aqform" id="aqform" autocomplete="off">
+          <div class="field">
+            <label for="aqBase" data-i18n="aq.base"></label>
+            <select id="aqBase"><option value="scopus">Scopus</option><option value="wos">Web of Science (Starter)</option></select>
+          </div>
+          <div class="field q">
+            <label for="aqQuery" data-i18n="aq.query"></label>
+            <input id="aqQuery">
+          </div>
+          <div class="field">
+            <label for="aqY1" data-i18n="wf.years"></label>
+            <div class="years"><input id="aqY1" type="number" min="1900" max="2100" data-i18n-aria="aria.y1"><span>–</span><input id="aqY2" type="number" min="1900" max="2100" data-i18n-aria="aria.y2"></div>
+          </div>
+          <div class="field">
+            <label for="aqMax" data-i18n="aq.max"></label>
+            <select id="aqMax"><option>200</option><option selected>1000</option><option>2000</option><option>5000</option><option>10000</option><option>20000</option></select>
+          </div>
+          <button class="go" id="aqGo" type="submit" data-i18n="aq.go"></button>
+          <button class="ghost" id="aqStop" type="button" hidden data-i18n="aq.stop"></button>
+        </form>
+        <label class="chk" id="aqCompleteBox"><input type="checkbox" id="aqComplete"> <span data-i18n="aq.complete"></span></label>
+        <p class="note" id="aqHelp"></p>
+        <p class="aqmsg" id="aqMsg" aria-live="polite"></p>
+      </section>
       <div class="howto">
         <div data-i18n-html="howto.pop"></div>
         <div data-i18n-html="howto.scopus"></div>
@@ -434,6 +475,17 @@ footer p{max-width:90ch;margin:.3em 0}
       </div>
     </div>
     <label class="chk" style="padding:0"><input type="checkbox" id="viaWorker"> <span data-i18n="set.via"></span></label>
+    <div class="grid2">
+      <div class="field">
+        <label for="scopusKey" data-i18n="set.scopusKey"></label>
+        <input id="scopusKey" type="password" autocomplete="off" placeholder="dev.elsevier.com">
+      </div>
+      <div class="field">
+        <label for="wosKey" data-i18n="set.wosKey"></label>
+        <input id="wosKey" type="password" autocomplete="off" placeholder="developer.clarivate.com">
+      </div>
+    </div>
+    <p data-i18n="set.apiKeys"></p>
     <p data-i18n="set.patents"></p>
     <div class="row">
       <button class="go" type="button" id="saveSettings" data-i18n="btn.save"></button>
@@ -808,7 +860,19 @@ fr: {
   "off.EP": "OEB (EP)", "off.WO": "OMPI (PCT)", "off.EA": "Eurasie (EA)", "off.AP": "ARIPO (AP)", "off.OA": "OAPI (OA)", "off.GC": "Golfe (GC)",
   "ex.inst": "Exemple : institution {x}", "ex.journal": "Exemple : revue {x}", "ex.title": "Exemple de publication n° {n} (titre fictif)",
   "ex.author": "Auteur {x}.", "ex.journal1": "Revue d'exemple", "ex.applicant": "Exemple : déposant {x}", "ex.patent": "Exemple de brevet n° {n} (titre fictif)",
-  "tab.about": "À propos", "tab.wb": "Banque mondiale", "site.tagline": "Plateforme de bibliométrie et d’analyse des brevets", "wf.indicator": "Indicateur", "wf.countries": "Pays à comparer", "wf.code": "Code de l'indicateur", "wf.years": "Période", "w.showWorld": "Afficher la valeur mondiale", "wbc.perMillion": "par million d'habitants (calculé avec la population de la Banque mondiale)", "wf.other": "Autre indicateur (code de la Banque mondiale)…",
+  "tab.about": "À propos", "tab.wb": "Banque mondiale", "set.scopusKey": "Clé API Scopus (facultative)", "set.wosKey": "Clé API Web of Science Starter (facultative)",
+  "set.apiKeys": "Clés Scopus et Web of Science : elles restent dans ce navigateur et ne sont jamais enregistrées par le site. Scopus est interrogé directement depuis votre ordinateur (connectez-vous au réseau ou au VPN de votre établissement si votre accès en dépend). Web of Science n'accepte pas les appels depuis une page web : la requête et la clé transitent par le proxy du site, qui ne les enregistre pas. Chacun reste responsable de l'usage de sa clé selon la licence de son établissement.",
+  "aq.title": "Interroger Scopus ou Web of Science avec votre clé", "aq.base": "Base", "aq.query": "Requête (syntaxe de la base)", "aq.max": "Notices max", "aq.go": "Lancer", "aq.stop": "Arrêter",
+  "aq.complete": "Données complètes Scopus (tous les auteurs et les mots-clés, utiles pour les réseaux ; 8 fois plus lent)",
+  "aq.helpScopus": "Exemple : TITLE-ABS-KEY(desalination) AND AFFILCOUNTRY(Morocco). Syntaxe de la recherche avancée Scopus. Les années sont ajoutées automatiquement. Les résultats rejoignent les fichiers importés et sont fusionnés et dédoublonnés avec eux.",
+  "aq.helpWos": "Exemple : TS=(desalination) AND OG=(Mohammed V University). Syntaxe Web of Science (TS, TI, AU, SO, OG, DO…). Les années sont ajoutées automatiquement. L'API Starter ne fournit pas les adresses des auteurs : les notices WoS seules n'apparaissent pas sur la carte des pays.",
+  "aq.needKey": "Ajoutez d'abord votre clé {b} dans « Sources & clés API ».", "aq.openSettings": "Ouvrir", "aq.needWorker": "Web of Science passe par le proxy du site : renseignez l'URL du proxy dans « Sources & clés API ».",
+  "aq.needQuery": "Saisissez une requête.", "aq.progress": "{b} : {n} / {m} notices récupérées…", "aq.wait": " Pause de {s} s (limite de l'API).",
+  "aq.done": "{b} : {n} notices ajoutées ({t} résultats au total pour cette requête).", "aq.stopped": "Arrêté : {n} notices récupérées ont été ajoutées.", "aq.empty": "{b} : aucun résultat pour cette requête.",
+  "aq.err401": "{b} : clé refusée (statut {s}). Vérifiez la clé ; pour Scopus, connectez-vous aussi au réseau ou au VPN de votre établissement.",
+  "aq.err403": "{b} : accès refusé (statut {s}). Votre accès ne couvre peut-être pas cette demande ; pour Scopus, essayez sans « Données complètes ».",
+  "aq.err400": "{b} : requête refusée (statut 400). Vérifiez la syntaxe de la requête.", "aq.err": "{b} : erreur ({msg}).", "aq.errNet": "{b} : impossible de joindre le service ({msg}).",
+  "site.tagline": "Plateforme de bibliométrie et d’analyse des brevets", "wf.indicator": "Indicateur", "wf.countries": "Pays à comparer", "wf.code": "Code de l'indicateur", "wf.years": "Période", "w.showWorld": "Afficher la valeur mondiale", "wbc.perMillion": "par million d'habitants (calculé avec la population de la Banque mondiale)", "wf.other": "Autre indicateur (code de la Banque mondiale)…",
   "ph.wcode": "code, ex. SP.POP.TOTL", "wg.rd": "Recherche et innovation", "wg.eco": "Économie", "wg.soc": "Éducation et société", "wg.env": "Énergie, eau et environnement",
   "wk.latest": "Valeur la plus récente", "wk.rank": "Rang mondial", "wk.change": "Évolution sur la période", "wk.world": "Valeur mondiale", "wk.rankS": "{c} · sur {n} pays", "wk.noCountry": "choisissez un pays",
   "wp.trend": "Évolution par pays", "wp.map": "Carte mondiale (dernière valeur disponible)", "wp.about": "À propos de cet indicateur", "wth.value": "Valeur", "wth.year": "Année",
@@ -867,7 +931,7 @@ fr: {
    + "<section id=\"ab-live\"><h3>Recherche en direct</h3><p>Les publications viennent d'<b>OpenAlex</b>, une base ouverte de plus de 300 millions de documents. Le sujet est cherché dans les titres et les résumés ; laissez-le vide pour analyser toute la production d'un pays.</p><ul><li><b>Pays</b> : ajoutez un ou plusieurs pays. Un seul pays affiche son <b>rang mondial</b> et sa part de la production mondiale ; le panneau carte bascule entre le classement mondial et les <b>pays partenaires</b> (co-publications).</li><li><b>Comparer avec</b> : un second sujet ou un second pays, tracé sur la courbe annuelle.</li><li><b>Carte</b> : cliquez un pays (ou une ligne du classement) pour ouvrir son profil.</li><li><b>Actualisation automatique</b> : relance l'analyse toutes les 5, 15 ou 60 minutes.</li></ul></section>"
    + "<section id=\"ab-pat\"><h3>Brevets</h3><p>Filtrez par mots-clés, par code <b>CPC</b> ou <b>CIB/IPC</b> (par exemple <code>H10K</code> ou <code>Y02E10/549</code>, plusieurs codes séparés par des virgules), par <b>déposant</b> et par <b>juridiction</b> (office de publication : Maroc, Office européen, OMPI…). Les données viennent de l'OEB en direct ; sans mot-clé, l'onglet affiche tous les brevets publiés l'année la plus récente, et la carte mondiale se remplit au fur et à mesure, car l'OEB limite le nombre de recherches par minute. Les déposants, leurs pays, la classification et les réseaux sont calculés sur les notices des 100 premières familles renvoyées par l'OEB. Le bouton <b>Voir l'échantillon</b> affiche un export Espacenet réel (100 familles sur le dessalement de l'eau de mer). Les comptages OEB portent sur des <b>publications</b> (une invention publiée dans cinq offices compte cinq fois) ; l'échantillon Espacenet est compté en <b>familles</b>. Le statut juridique n'est pas fourni sous forme agrégée par l'OEB : il n'est pas affiché.</p><ul><li><b>Pays de priorité</b> : pays du premier dépôt, qui indique l'origine de l'invention.</li><li><b>Pays de protection</b> : offices où la famille du brevet est publiée.</li><li><b>Office de publication</b> : office qui a publié chaque document.</li><li><b>Classification</b> : regroupement par sous-classe (H10K), groupe (H10K30) ou sous-groupe (H10K30/50) ; cliquez une barre pour filtrer.</li></ul></section>"
    + "<section id=\"ab-wb\"><h3>Banque mondiale</h3><p>L'onglet <b>Banque mondiale</b> interroge en direct l'API gratuite de la Banque mondiale (World Development Indicators). Choisissez un indicateur (dépenses de R-D, chercheurs, brevets, articles scientifiques, exportations de haute technologie, PIB, éducation, énergie, eau…) ou saisissez n'importe quel code de la Banque mondiale, puis les pays à comparer et la période. L'onglet affiche l'évolution par pays avec la valeur mondiale en pointillés, une carte et un classement mondial sur la dernière valeur disponible de chaque pays, et la définition officielle de l'indicateur. Les données se téléchargent en CSV.</p></section>"
-   + "<section id=\"ab-import\"><h3>Importer et fusionner</h3><p>Déposez un ou plusieurs exports ; le site reconnaît la base de chaque fichier. Les doublons sont repérés par DOI, puis par titre, année et premier auteur, puis par titre et année quand une notice n'a pas de DOI. Les titres seulement proches sont listés pour vérification, jamais fusionnés d'office. Le corpus fusionné se télécharge en CSV. <b>Vos fichiers ne quittent pas votre navigateur.</b></p><ul><li><b>Web of Science</b> : Export → « Tab delimited file », contenu « Full Record ».</li><li><b>Scopus</b> : tout sélectionner, Exporter → CSV avec les informations de citation, bibliographiques, résumé et mots-clés.</li><li><b>Publish or Perish</b> : enregistrer les résultats en CSV (Google Scholar, Crossref, OpenAlex…).</li></ul></section>"
+   + "<section id=\"ab-import\"><h3>Importer et fusionner</h3><p>Déposez un ou plusieurs exports ; le site reconnaît la base de chaque fichier. Les doublons sont repérés par DOI, puis par titre, année et premier auteur, puis par titre et année quand une notice n'a pas de DOI. Les titres seulement proches sont listés pour vérification, jamais fusionnés d'office. Le corpus fusionné se télécharge en CSV. <b>Vos fichiers ne quittent pas votre navigateur.</b></p><ul><li><b>Web of Science</b> : Export → « Tab delimited file », contenu « Full Record ».</li><li><b>Scopus</b> : tout sélectionner, Exporter → CSV avec les informations de citation, bibliographiques, résumé et mots-clés.</li><li><b>Publish or Perish</b> : enregistrer les résultats en CSV (Google Scholar, Crossref, OpenAlex…).</li></ul><p><b>Scopus et Web of Science par API</b> : avec sa propre clé (champ dans « Sources & clés API »), chacun peut interroger Scopus ou Web of Science Starter depuis l'onglet Importer et fusionner ; les résultats sont fusionnés avec les fichiers importés. Les clés restent dans le navigateur ; Web of Science transite par le proxy du site, sans enregistrement. Rien n'est stocké ni republié par le site, et chacun reste responsable de l'usage de sa clé selon la licence de son établissement.</p></section>"
    + "<section id=\"ab-net\"><h3>Lire les réseaux</h3><p>Les réseaux reprennent les principes de VOSviewer. Chaque <b>nœud</b> est un mot-clé, un pays, un auteur, une institution, un code ou un déposant ; sa taille dépend du nombre de documents. Un <b>lien</b> relie deux éléments qui apparaissent dans les mêmes documents ; son épaisseur dépend du nombre de documents communs. Les <b>couleurs</b> montrent soit des groupes d'éléments fortement liés (méthode de Louvain), soit l'<b>année moyenne</b> des documents, pour repérer les thèmes émergents.</p></section>"
    + "<section id=\"ab-ind\"><h3>Définitions des indicateurs</h3><dl><dt>Indice h</dt><dd>h publications citées au moins h fois chacune.</dd><dt>Indice g</dt><dd>les g publications les plus citées totalisent au moins g² citations.</dd><dt>Quotient m</dt><dd>indice h divisé par le nombre d'années depuis la première publication.</dd><dt>Comptage entier</dt><dd>une publication compte pour chacun des pays de ses auteurs ; la somme des pays dépasse donc le total.</dd><dt>Part mondiale</dt><dd>publications du pays divisées par les publications mondiales dont le pays est connu.</dd><dt>Accès ouvert</dt><dd>or (revue ouverte), hybride (article ouvert dans une revue payante), vert (archive ouverte), bronze (lecture gratuite sans licence), diamant (sans frais de lecture ni de publication).</dd><dt>Famille de brevets</dt><dd>ensemble des publications d'une même invention dans différents offices.</dd></dl></section>"
    + "<section id=\"ab-src\"><h3>Sources et limites</h3><ul><li><b>OpenAlex</b> (licence CC0) : couverture large, mais affiliations et pays parfois manquants ; une clé gratuite augmente le volume de requêtes.</li><li><b>Brevets</b> : OEB Open Patent Services (gratuit après validation du compte) et Lens.org, selon leurs conditions d'utilisation. Seuls des comptages agrégés sont affichés.</li><li><b>Scopus et Web of Science</b> : pas d'API ouverte ; leurs données entrent par vos exports, analysés localement.</li></ul></section>",
@@ -992,7 +1056,19 @@ en: {
   "off.EP": "EPO (EP)", "off.WO": "WIPO (PCT)", "off.EA": "Eurasia (EA)", "off.AP": "ARIPO (AP)", "off.OA": "OAPI (OA)", "off.GC": "Gulf (GC)",
   "ex.inst": "Example: institution {x}", "ex.journal": "Example: journal {x}", "ex.title": "Example publication no. {n} (fictitious title)",
   "ex.author": "Author {x}.", "ex.journal1": "Example journal", "ex.applicant": "Example: applicant {x}", "ex.patent": "Example patent no. {n} (fictitious title)",
-  "tab.about": "About", "tab.wb": "World Bank", "site.tagline": "Bibliometrics & Patent Analytics Platform", "wf.indicator": "Indicator", "wf.countries": "Countries to compare", "wf.code": "Indicator code", "wf.years": "Period", "w.showWorld": "Show the world value", "wbc.perMillion": "per million people (computed with World Bank population)", "wf.other": "Other indicator (World Bank code)…",
+  "tab.about": "About", "tab.wb": "World Bank", "set.scopusKey": "Scopus API key (optional)", "set.wosKey": "Web of Science Starter API key (optional)",
+  "set.apiKeys": "Scopus and Web of Science keys stay in this browser and are never stored by the site. Scopus is queried directly from your computer (connect to your institution's network or VPN if your access depends on it). Web of Science does not accept calls from web pages: the query and key go through the site's proxy, which does not store them. Each user remains responsible for using their key under their institution's license.",
+  "aq.title": "Query Scopus or Web of Science with your key", "aq.base": "Database", "aq.query": "Query (database syntax)", "aq.max": "Max records", "aq.go": "Run", "aq.stop": "Stop",
+  "aq.complete": "Complete Scopus data (all authors and keywords, useful for networks; 8 times slower)",
+  "aq.helpScopus": "Example: TITLE-ABS-KEY(desalination) AND AFFILCOUNTRY(Morocco). Scopus advanced search syntax. Years are added automatically. Results join the imported files and are merged and deduplicated with them.",
+  "aq.helpWos": "Example: TS=(desalination) AND OG=(Mohammed V University). Web of Science syntax (TS, TI, AU, SO, OG, DO…). Years are added automatically. The Starter API does not provide author addresses: WoS-only records do not appear on the country map.",
+  "aq.needKey": "First add your {b} key in “Sources & API keys”.", "aq.openSettings": "Open", "aq.needWorker": "Web of Science goes through the site's proxy: enter the proxy URL in “Sources & API keys”.",
+  "aq.needQuery": "Enter a query.", "aq.progress": "{b}: {n} / {m} records retrieved…", "aq.wait": " Pausing {s} s (API limit).",
+  "aq.done": "{b}: {n} records added ({t} results in total for this query).", "aq.stopped": "Stopped: the {n} records retrieved were added.", "aq.empty": "{b}: no results for this query.",
+  "aq.err401": "{b}: key refused (status {s}). Check the key; for Scopus, also connect to your institution's network or VPN.",
+  "aq.err403": "{b}: access denied (status {s}). Your access may not cover this request; for Scopus, try without “Complete data”.",
+  "aq.err400": "{b}: query refused (status 400). Check the query syntax.", "aq.err": "{b}: error ({msg}).", "aq.errNet": "{b}: cannot reach the service ({msg}).",
+  "site.tagline": "Bibliometrics & Patent Analytics Platform", "wf.indicator": "Indicator", "wf.countries": "Countries to compare", "wf.code": "Indicator code", "wf.years": "Period", "w.showWorld": "Show the world value", "wbc.perMillion": "per million people (computed with World Bank population)", "wf.other": "Other indicator (World Bank code)…",
   "ph.wcode": "code, e.g. SP.POP.TOTL", "wg.rd": "Research and innovation", "wg.eco": "Economy", "wg.soc": "Education and society", "wg.env": "Energy, water and environment",
   "wk.latest": "Latest value", "wk.rank": "World rank", "wk.change": "Change over the period", "wk.world": "World value", "wk.rankS": "{c} · out of {n} countries", "wk.noCountry": "choose a country",
   "wp.trend": "Trend by country", "wp.map": "World map (latest available value)", "wp.about": "About this indicator", "wth.value": "Value", "wth.year": "Year",
@@ -1051,7 +1127,7 @@ en: {
    + "<section id=\"ab-live\"><h3>Live search</h3><p>Publications come from <b>OpenAlex</b>, an open database of more than 300 million documents. The topic is searched in titles and abstracts; leave it empty to analyze a country's whole output.</p><ul><li><b>Countries</b>: add one or more. A single country shows its <b>world rank</b> and share of world output; the map panel switches between the world ranking and <b>partner countries</b> (co-publications).</li><li><b>Compare with</b>: a second topic or country, drawn on the annual chart.</li><li><b>Map</b>: click a country (or a ranking row) to open its profile.</li><li><b>Auto refresh</b>: reruns the analysis every 5, 15 or 60 minutes.</li></ul></section>"
    + "<section id=\"ab-pat\"><h3>Patents</h3><p>Filter by keywords, by <b>CPC</b> or <b>IPC</b> code (for example <code>H10K</code> or <code>Y02E10/549</code>, several codes separated by commas), by <b>applicant</b> and by <b>jurisdiction</b> (publishing office: Morocco, European Patent Office, WIPO…). Data comes live from the EPO; without a keyword, the tab shows all patents published in the most recent year, and the world map fills in progressively because the EPO limits searches per minute. Applicants, their countries, classification and networks are computed on the records of the first 100 families returned by the EPO. The <b>View sample</b> button shows a real Espacenet export (100 families on seawater desalination). EPO counts are <b>publications</b> (an invention published in five offices counts five times); the Espacenet sample is counted in <b>families</b>. The EPO does not provide legal status in aggregate form, so it is not shown.</p><ul><li><b>Priority country</b>: country of first filing, which shows where the invention comes from.</li><li><b>Protection countries</b>: offices where the patent family is published.</li><li><b>Publishing office</b>: office that published each document.</li><li><b>Classification</b>: grouped by subclass (H10K), group (H10K30) or subgroup (H10K30/50); click a bar to filter.</li></ul></section>"
    + "<section id=\"ab-wb\"><h3>World Bank</h3><p>The <b>World Bank</b> tab queries the free World Bank API (World Development Indicators) live. Choose an indicator (R&amp;D spending, researchers, patents, scientific articles, high-technology exports, GDP, education, energy, water…) or enter any World Bank code, then the countries to compare and the period. The tab shows the trend by country with the world value as a dotted line, a map and a world ranking based on each country's latest available value, and the official definition of the indicator. Data can be downloaded as CSV.</p></section>"
-   + "<section id=\"ab-import\"><h3>Import and merge</h3><p>Drop one or more exports; the site recognizes each file's database. Duplicates are matched by DOI, then by title, year and first author, then by title and year when a record has no DOI. Titles that are only similar are listed for review, never merged automatically. The merged corpus can be downloaded as CSV. <b>Your files never leave your browser.</b></p><ul><li><b>Web of Science</b>: Export → “Tab delimited file”, record content “Full Record”.</li><li><b>Scopus</b>: select all, Export → CSV with citation, bibliographical, abstract and keyword information.</li><li><b>Publish or Perish</b>: save the results as CSV (Google Scholar, Crossref, OpenAlex…).</li></ul></section>"
+   + "<section id=\"ab-import\"><h3>Import and merge</h3><p>Drop one or more exports; the site recognizes each file's database. Duplicates are matched by DOI, then by title, year and first author, then by title and year when a record has no DOI. Titles that are only similar are listed for review, never merged automatically. The merged corpus can be downloaded as CSV. <b>Your files never leave your browser.</b></p><ul><li><b>Web of Science</b>: Export → “Tab delimited file”, record content “Full Record”.</li><li><b>Scopus</b>: select all, Export → CSV with citation, bibliographical, abstract and keyword information.</li><li><b>Publish or Perish</b>: save the results as CSV (Google Scholar, Crossref, OpenAlex…).</li></ul><p><b>Scopus and Web of Science via API</b>: with their own key (field in “Sources & API keys”), anyone can query Scopus or Web of Science Starter from the Import and merge tab; results are merged with the imported files. Keys stay in the browser; Web of Science goes through the site's proxy, without being stored. Nothing is stored or republished by the site, and each user remains responsible for using their key under their institution's license.</p></section>"
    + "<section id=\"ab-net\"><h3>Reading the networks</h3><p>The networks follow VOSviewer's principles. Each <b>node</b> is a keyword, country, author, institution, code or applicant; its size reflects the number of documents. A <b>link</b> joins two items that appear in the same documents; its width reflects the number of shared documents. <b>Colors</b> show either clusters of closely linked items (Louvain method) or the <b>average year</b> of the documents, to spot emerging topics.</p></section>"
    + "<section id=\"ab-ind\"><h3>Indicator definitions</h3><dl><dt>h-index</dt><dd>h publications each cited at least h times.</dd><dt>g-index</dt><dd>the g most cited publications total at least g² citations.</dd><dt>m-quotient</dt><dd>h-index divided by the number of years since the first publication.</dd><dt>Full counting</dt><dd>a publication counts once for each of its authors' countries, so country totals exceed the overall total.</dd><dt>World share</dt><dd>the country's publications divided by world publications with a known country.</dd><dt>Open access</dt><dd>gold (open journal), hybrid (open article in a subscription journal), green (repository copy), bronze (free to read without a license), diamond (no reading or publishing fees).</dd><dt>Patent family</dt><dd>all publications of the same invention across patent offices.</dd></dl></section>"
    + "<section id=\"ab-src\"><h3>Sources and limits</h3><ul><li><b>OpenAlex</b> (CC0 license): broad coverage, but affiliations and countries are sometimes missing; a free key raises the request volume.</li><li><b>Patents</b>: EPO Open Patent Services (free once the account is approved) and Lens.org, under their terms of use. Only aggregated counts are shown.</li><li><b>Scopus and Web of Science</b>: no open API; their data comes in through your exports, analyzed locally.</li></ul></section>",
@@ -1120,6 +1196,20 @@ function renderBrand() {
   const h = $("siteName");
   if (h) h.innerHTML = acc && name.endsWith(acc) && acc !== name ? esc(name.slice(0, -acc.length)) + "<span>" + esc(acc) + "</span>" : esc(name);
   document.title = name + " · " + t("site.tagline");
+  // optional logo image (site.json "logo"), shown before the name, or instead of it with "logoOnly": true
+  const logo = SITE_CONFIG.logo, box = document.querySelector(".brand .logo");
+  let img = document.getElementById("siteLogo");
+  if (logo && box) {
+    if (!img) { img = document.createElement("img"); img.id = "siteLogo"; img.className = "logo-img"; box.parentNode.insertBefore(img, box); }
+    img.src = logo; img.alt = name; img.style.height = (SITE_CONFIG.logoHeight || 44) + "px";
+    if (h) h.hidden = !!SITE_CONFIG.logoOnly;
+    img.onerror = () => { img.remove(); if (h) h.hidden = false; };
+  }
+  if (SITE_CONFIG.favicon) {
+    let l = document.querySelector("link[rel=icon]");
+    if (!l) { l = document.createElement("link"); l.rel = "icon"; document.head.appendChild(l); }
+    l.href = SITE_CONFIG.favicon;
+  }
 }
 function applyStatic() {
   document.documentElement.lang = LANG;
@@ -1733,6 +1823,154 @@ function renderMerge() {
   $("reviewBox").hidden = !mg.review.length;
   $("tReview").tBodies[0].innerHTML = mg.review.slice(0, 100).map(x => `<tr><td class="n">${pct(x.j)}</td><td>${esc(x.a.title)}<div class="w-meta">${esc(x.a.bases.join(" + "))}</div></td><td>${esc(x.b.title)}<div class="w-meta">${esc(x.b.bases.join(" + "))}</div></td><td class="n">${x.a.year ?? "—"} / ${x.b.year ?? "—"}</td></tr>`).join("");
 }
+/* ======================================================================
+   SCOPUS AND WEB OF SCIENCE BY API (the visitor's own keys, kept in this browser)
+   Scopus: called directly from the browser (Elsevier allows it; access may depend on the institution's network).
+   Web of Science Starter: Clarivate blocks browser calls, so the call goes through the Worker (/wos/documents).
+   Results are converted into rows with the same column names as the exports, then merged like imported files.
+   ====================================================================== */
+let aqCtl = null;
+const aqName = b => b === "wos" ? "Web of Science" : "Scopus";
+function aqMsg(cls, html) { const m = $("aqMsg"); m.className = "aqmsg" + (cls ? " " + cls : ""); m.innerHTML = html; }
+function aqUi() {
+  const wos = $("aqBase").value === "wos";
+  $("aqQuery").placeholder = wos ? "TS=(desalination)" : "TITLE-ABS-KEY(desalination)";
+  $("aqCompleteBox").hidden = wos;
+  $("aqHelp").textContent = t(wos ? "aq.helpWos" : "aq.helpScopus");
+  [...$("aqMax").options].forEach(o => { o.hidden = o.disabled = wos && Number(o.value) > 5000; });
+  if (wos && Number($("aqMax").value) > 5000) $("aqMax").value = "5000";
+}
+$("aqBase").addEventListener("change", aqUi);
+function openSettings() { const el = $("settings"); el.hidden = false; $("btnSettings").setAttribute("aria-expanded", "true"); el.scrollIntoView({ behavior: "smooth", block: "start" }); }
+const aqErr = (b, status) => Object.assign(new Error(t(status === 400 ? "aq.err400" : status === 403 ? "aq.err403" : status === 401 ? "aq.err401" : "aq.err", { b: aqName(b), s: status, msg: "HTTP " + status })), { shown: true });
+async function aqFetch(b, url, opts, onWait) {
+  for (let attempt = 0; ; attempt++) {
+    let r;
+    try { r = await fetch(url, opts); }
+    catch (e) { if (e.name === "AbortError") throw e; throw Object.assign(new Error(t("aq.errNet", { b: aqName(b), msg: e.message })), { shown: true }); }
+    if (r.status === 429 && attempt < 6) {
+      const s = Math.min(60, Math.max(2, parseInt(r.headers.get("Retry-After"), 10) || 2 * (attempt + 1)));
+      onWait(s); await sleep(s * 1000); continue;
+    }
+    if (!r.ok) throw aqErr(b, r.status);
+    return r.json();
+  }
+}
+/* Scopus Search: cursor pagination (no 5,000 limit); falls back to start/count if the cursor is refused. */
+async function fetchScopus(q, max, complete, key, signal, progress) {
+  const per = complete ? 25 : 200, out = []; let cursor = "*", start = 0, useCursor = true, total = 0;
+  while (out.length < max) {
+    const u = new URL("https://api.elsevier.com/content/search/scopus");
+    u.searchParams.set("query", q); u.searchParams.set("count", String(Math.min(per, max - out.length)));
+    u.searchParams.set("view", complete ? "COMPLETE" : "STANDARD"); u.searchParams.set("apiKey", key);
+    if (useCursor) u.searchParams.set("cursor", cursor); else u.searchParams.set("start", String(start));
+    let j;
+    try { j = await aqFetch("scopus", u.toString(), { headers: { Accept: "application/json" }, signal }, s => progress(out.length, Math.min(total || max, max), s)); }
+    catch (e) { if (useCursor && !out.length && /400/.test(e.message)) { useCursor = false; continue; } throw e; }
+    const sr = j["search-results"] || {};
+    total = parseInt(sr["opensearch:totalResults"], 10) || 0;
+    const entries = (sr.entry || []).filter(e => !e.error);
+    if (!entries.length) break;
+    out.push(...entries); start += entries.length;
+    progress(out.length, Math.min(total, max));
+    if (useCursor) { const nx = sr.cursor && sr.cursor["@next"]; if (!nx || nx === cursor) break; cursor = nx; }
+    else if (start >= Math.min(total, 5000)) break;
+    if (out.length >= total) break;
+    await sleep(150);
+  }
+  return { total, rows: out.slice(0, max).map(scopusRow) };
+}
+function scopusRow(e) {
+  const arr = x => x == null ? [] : Array.isArray(x) ? x : [x];
+  const authors = arr(e.author).map(a => a.authname || [a.surname, a["given-name"]].filter(Boolean).join(", ")).filter(Boolean);
+  const affil = arr(e.affiliation).map(a => [a.affilname, a["affiliation-city"], a["affiliation-country"]].filter(Boolean).join(", ")).filter(Boolean);
+  const oaLabels = e.freetoreadLabel && arr(e.freetoreadLabel.value).map(v => v.$ || v).filter(Boolean);
+  const isOa = e.openaccessFlag === true || e.openaccessFlag === "true" || e.openaccess === "1" || e.openaccess === 1;
+  return {
+    "title": e["dc:title"] || "", "year": String(e["prism:coverDate"] || "").slice(0, 4), "cited by": e["citedby-count"] ?? "",
+    "source title": e["prism:publicationName"] || "", "doi": e["prism:doi"] || "",
+    "authors": (authors.length ? authors : arr(e["dc:creator"])).join("; "), "affiliations": affil.join("; "),
+    "open access": oaLabels && oaLabels.length ? oaLabels.join("; ") : isOa ? "Open Access" : "",
+    "document type": e.subtypeDescription || "", "author keywords": String(e.authkeywords || "").split("|").map(x => x.trim()).filter(Boolean).join("; "),
+    "eid": e.eid || ""
+  };
+}
+/* Web of Science Starter: 50 records per page, through the Worker. */
+async function fetchWos(q, max, key, signal, progress) {
+  const out = []; let page = 1, total = 0;
+  while (out.length < max) {
+    const u = new URL(cfg.worker + "/wos/documents");
+    u.searchParams.set("db", "WOS"); u.searchParams.set("q", q); u.searchParams.set("limit", "50"); u.searchParams.set("page", String(page));
+    const j = await aqFetch("wos", u.toString(), { headers: { "X-ApiKey": key }, signal }, s => progress(out.length, Math.min(total || max, max), s));
+    total = (j.metadata && j.metadata.total) || 0;
+    const hits = j.hits || [];
+    if (!hits.length) break;
+    out.push(...hits); progress(out.length, Math.min(total, max));
+    if (out.length >= total) break;
+    page++; await sleep(600);
+  }
+  return { total, rows: out.slice(0, max).map(wosRow) };
+}
+function wosRow(h) {
+  const arr = x => x == null ? [] : Array.isArray(x) ? x : [x];
+  const src = h.source || {}, ids = h.identifiers || {};
+  const cites = arr(h.citations).find(c => /wos/i.test(c.db || "")) || arr(h.citations)[0] || {};
+  return {
+    "title": h.title || "", "year": String(src.publishYear || ""), "times cited, wos core": cites.count ?? "",
+    "source title": src.sourceTitle || "", "doi": ids.doi || "",
+    "authors": arr(h.names && h.names.authors).map(a => a.wosStandard || a.displayName).filter(Boolean).join("; "),
+    "document type": arr(h.types).join("; "), "author keywords": arr(h.keywords && h.keywords.authorKeywords).join("; "), "ut": h.uid || ""
+  };
+}
+$("aqform").addEventListener("submit", async e => {
+  e.preventDefault();
+  if (aqCtl) return;
+  const b = $("aqBase").value, key = (store.get(b === "wos" ? "wosKey" : "scopusKey", "") || "").trim();
+  let q = $("aqQuery").value.trim();
+  if (!key) { aqMsg("err", esc(t("aq.needKey", { b: aqName(b) })) + `<button type="button" class="ghost" id="aqOpenSet">${esc(t("aq.openSettings"))}</button>`); $("aqOpenSet").addEventListener("click", openSettings); return; }
+  if (b === "wos" && !cfg.worker) { aqMsg("err", esc(t("aq.needWorker"))); return; }
+  if (!q) { aqMsg("err", esc(t("aq.needQuery"))); $("aqQuery").focus(); return; }
+  const y1 = parseInt($("aqY1").value, 10), y2 = parseInt($("aqY2").value, 10);
+  if (y1 || y2) {
+    const a = y1 || 1900, z = y2 || CUR_YEAR;
+    q = b === "wos" ? `(${q}) AND PY=(${a}-${z})` : `(${q}) AND PUBYEAR > ${a - 1} AND PUBYEAR < ${z + 1}`;
+  }
+  const max = Number($("aqMax").value) || 1000, complete = b === "scopus" && $("aqComplete").checked;
+  store.set("aqlast", JSON.stringify({ b, q: $("aqQuery").value.trim(), y1: $("aqY1").value, y2: $("aqY2").value, max, complete }));
+  aqCtl = new AbortController();
+  $("aqGo").disabled = true; $("aqStop").hidden = false; setProgress(-1);
+  let got = [], total = 0;
+  const progress = (n, m, wait) => {
+    aqMsg("", esc(t("aq.progress", { b: aqName(b), n: fmt(n), m: fmt(m) }) + (wait ? t("aq.wait", { s: wait }) : "")));
+    setProgress(m ? n / m : -1);
+  };
+  progress(0, max);
+  try {
+    const res = b === "wos" ? await fetchWos(q, max, key, aqCtl.signal, progress) : await fetchScopus(q, max, complete, key, aqCtl.signal, progress);
+    got = res.rows; total = res.total;
+    if (!got.length) aqMsg("", esc(t("aq.empty", { b: aqName(b) })));
+    else aqMsg("ok", esc(t("aq.done", { b: aqName(b), n: fmt(got.length), t: fmt(total) })));
+  } catch (err) {
+    if (err.name === "AbortError") aqMsg("", esc(t("aq.stopped", { n: fmt(got.length) })));
+    else aqMsg("err", esc(err.shown ? err.message : t("aq.err", { b: aqName(b), msg: err.message })));
+  } finally {
+    aqCtl = null; $("aqGo").disabled = false; $("aqStop").hidden = true; setProgress(null);
+  }
+  if (got.length) {
+    const base = b === "wos" ? "WoS" : "Scopus";
+    const normed = got.map(r => normalize(r, base));
+    const { out, dropped } = dedupeWithin(normed);
+    FILES.push({ name: aqName(b) + " API · " + $("aqQuery").value.trim().slice(0, 60), base, recs: out, raw: got.length, internal: dropped });
+    refreshFiles();
+  }
+});
+$("aqStop").addEventListener("click", () => { if (aqCtl) aqCtl.abort(); });
+try {
+  const al = JSON.parse(store.get("aqlast", "null"));
+  if (al && typeof al === "object") { $("aqBase").value = al.b === "wos" ? "wos" : "scopus"; $("aqQuery").value = al.q || ""; $("aqY1").value = al.y1 || ""; $("aqY2").value = al.y2 || ""; $("aqComplete").checked = !!al.complete; if (al.max) $("aqMax").value = String(al.max); }
+} catch {}
+aqUi();
+
 let dlNS; // "downloads" capability when viewed inside claude.ai; otherwise a regular browser download
 if (window.claude && typeof window.claude.use === "function") window.claude.use("downloads").then(ns => { dlNS = ns; }).catch(() => { dlNS = null; });
 $("btnDownload").addEventListener("click", async () => {
@@ -2889,6 +3127,7 @@ function setMode(m) {
   $("tabFile").setAttribute("aria-selected", String(m === "file"));
   $("tabAbout").setAttribute("aria-selected", String(m === "about"));
   $("tabWb").setAttribute("aria-selected", String(m === "wb"));
+  document.body.classList.toggle("mode-file", m === "file");
   $("liveControls").hidden = m !== "live"; $("patControls").hidden = m !== "pat"; $("importer").hidden = m !== "file"; $("wbControls").hidden = m !== "wb";
   $("autoBox").hidden = m === "file" || m === "wb"; $("statusBar").hidden = m === "about";
   const isCustom = m.startsWith("custom:"), cid = isCustom ? m.slice(7) : "";
@@ -3047,6 +3286,7 @@ async function loadSite() {
   if (j.about) SITE_CONFIG.about = { ...(SITE_CONFIG.about || {}), ...j.about };
   if (typeof j.siteName === "string" && j.siteName.trim()) { SITE_CONFIG.siteName = j.siteName.trim(); SITE_CONFIG.siteNameAccent = typeof j.siteNameAccent === "string" ? j.siteNameAccent : ""; }
   else if (typeof j.siteNameAccent === "string") SITE_CONFIG.siteNameAccent = j.siteNameAccent;
+  ["logo", "logoHeight", "logoOnly", "favicon"].forEach(k => { if (j[k] != null && j[k] !== "") SITE_CONFIG[k] = j[k]; });
   if (j.texts) ["fr", "en"].forEach(l => Object.assign(I18N[l], (j.texts && j.texts[l]) || {}));
   (j.hideTabs || []).forEach(name => { const b = $(BUILTIN_TABS[name]); if (b) b.hidden = true; });
   const aboutBtn = $("tabAbout");
@@ -3128,9 +3368,11 @@ document.querySelectorAll("[data-copy]").forEach(b => b.addEventListener("click"
 
 /* ---------- settings ---------- */
 $("oaKey").value = cfg.key; $("workerUrl").value = store.get("worker") || SITE_CONFIG.workerUrl; $("viaWorker").checked = cfg.viaWorker;
+$("scopusKey").value = store.get("scopusKey", "") || ""; $("wosKey").value = store.get("wosKey", "") || "";
 $("btnSettings").addEventListener("click", () => { const el = $("settings"); el.hidden = !el.hidden; $("btnSettings").setAttribute("aria-expanded", String(!el.hidden)); });
 $("saveSettings").addEventListener("click", () => {
   store.set("oaKey", $("oaKey").value.trim()); store.set("worker", $("workerUrl").value.trim()); store.set("viaWorker", $("viaWorker").checked ? "1" : "0");
+  store.set("scopusKey", $("scopusKey").value.trim()); store.set("wosKey", $("wosKey").value.trim());
   CACHE.clear(); $("settingsMsg").textContent = t("set.saved");
   if (MODE === "live") run(); else if (MODE === "pat") runPat();
 });
@@ -3156,7 +3398,7 @@ $("auto").addEventListener("change", setAuto);
 function setLang(l) {
   if (l === LANG) return;
   LANG = l; store.set("lang", l); nf = new Intl.NumberFormat(LOC());
-  applyStatic(); fillDatalists(); fillWbIndicators(); pubChips.draw(); patChips.draw(); wbChips.draw();
+  applyStatic(); fillDatalists(); fillWbIndicators(); aqUi(); pubChips.draw(); patChips.draw(); wbChips.draw();
   if ($("c2").value.trim()) { const c = resolveCountryInput($("c2").value); if (c) $("c2").value = cname(c); }
   if (MODE === "live") run();
   else if (MODE === "pat") runPat();
