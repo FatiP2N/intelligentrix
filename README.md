@@ -6,7 +6,7 @@ A free platform for bibliometric analysis and patent landscaping. Intelligentrix
 patents of a topic, a country or a set of files, using open databases and your own exports. Available in
 English and French.
 
-**Live site: https://fatip2n.github.io/biblioscope/**
+**Live site: [https://fatip2n.github.io/intelligentrix/](https://fatip2n.github.io/intelligentrix/)**
 
 **Total cost: $0.** The site is a single static page on GitHub Pages, with a small Cloudflare Worker (free plan)
 that keeps API keys secret.
