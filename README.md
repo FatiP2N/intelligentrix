@@ -6,7 +6,7 @@ A free platform for bibliometric analysis and patent landscaping. Intelligentrix
 patents of a topic, a country or a set of files, using open databases and your own exports. Available in
 English and French.
 
-**Live site: [https://fatip2n.github.io/intelligentrix/](https://fatip2n.github.io/intelligentrix/)**
+**Live site: https://fatip2n.github.io/intelligentrix/**
 
 **Total cost: $0.** The site is a single static page on GitHub Pages, with a small Cloudflare Worker (free plan)
 that keeps API keys secret.
@@ -53,6 +53,10 @@ Visitor ──► GitHub Pages (index.html, static)
 - Duplicates are matched by DOI, then by normalized title, year and first author. Similar titles are listed
   for review and never merged automatically.
 - Merge report, citation indicators (h, g, m), country map, networks, and a downloadable merged CSV.
+- **Query databases from the site**: Scopus and Web of Science (with the user's own key, entered under
+  *Sources & API keys* and kept in the browser; Web of Science is relayed by the Worker, which does not store the key),
+  plus OpenAlex and Crossref (open, no key). Topic, countries (except Crossref) and period; several sources can be
+  queried at once, and all results are merged and deduplicated with the imported files.
 - **Files are processed in the browser and never uploaded**, which is compatible with Scopus and
   Web of Science licenses as long as raw records are not republished.
 
@@ -121,6 +125,7 @@ const SITE_CONFIG = {
 | `GET /test-epo` | Checks the EPO keys and query syntax |
 | `GET /openalex/...` | Relays OpenAlex requests with the stored key (cached 1 h) |
 | `GET /worldbank/...` | Relays World Bank API requests (fallback, cached 6 h) |
+| `GET /wos/documents?...` | Relays Web of Science Starter requests with the visitor's key (`X-ApiKey` header; never stored or cached) |
 | `GET /patents?...` | Patent counts and records. Parameters: `q`, `cls` + `clsType` (cpc/ipc), `applicant`, `juris`, `from`, `to`, `part` (years, offices, total, sample), `offices`, `max` |
 
 ## Notes and limits

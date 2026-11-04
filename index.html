@@ -99,14 +99,15 @@ form.query.wq select,form.query.wq #wcode{width:100%}
 body.mode-file .top{position:static}
 .apiq{grid-template-columns:minmax(0,1fr);background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:grid;gap:8px}
 .apiq h3{font-family:var(--f-display);font-size:1.05rem;margin:0}
-.aqform{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto auto auto;gap:8px;align-items:end}
-.aqform>.aqsrc{min-width:max-content}.apiq .aqsrc .chk{flex:none;white-space:nowrap;align-items:center}
+.aqform{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto auto auto auto;gap:8px;align-items:end}
+.aqform>.aqsrc{grid-column:1/-1;flex-direction:row}
+.aqform>.aqsrc{min-width:0}.apiq .aqsrc .chk{flex:none;white-space:nowrap;align-items:center}
 .aqsrc{border:0;margin:0;padding:0;display:flex;gap:4px 12px;flex-wrap:wrap;align-items:center}.aqsrc legend{padding:0;font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:6px}.aqsrc .chk{padding:6px 0;text-transform:none;letter-spacing:0;font-size:.88rem;font-weight:400;color:var(--ink);white-space:nowrap;margin:0}
 .aqadv{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}@media (max-width:640px){.aqadv{grid-template-columns:minmax(0,1fr)}}
 .adv summary{cursor:pointer;font-weight:600;font-size:.88rem;color:var(--ink)}.adv[open]{display:grid;gap:8px}.adv[open] summary{margin-bottom:4px}
 .setmsg{font-size:.86rem;display:grid;gap:3px}.setmsg:empty{display:none}.setmsg .ok{color:var(--good)}.setmsg .err{color:var(--bad)}.setmsg .na{color:var(--muted)}
 .apiq,.aqform>*{min-width:0}.aqform select,.aqform input{width:100%}
-@media (max-width:980px){.aqform{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.aqform .field.q,.aqform .go,.aqform>.aqsrc{grid-column:1/-1}.aqform>.aqsrc{min-width:0}}
+@media (max-width:980px){.aqform{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.aqform .field.q,.aqform .field.c,.aqform .go,.aqform>.aqsrc{grid-column:1/-1}}
 .apiq .chk{padding:0;font-size:.85rem}
 .apiq .note{margin:0}
 .aqmsg{margin:0;font-size:.88rem;display:grid;gap:3px}.aqmsg:empty{display:none}.aqmsg .err{color:var(--bad)}.aqmsg .ok{color:var(--good)}
@@ -420,11 +421,10 @@ footer p{max-width:90ch;margin:.3em 0}
             <label for="aqTopic" data-i18n="aq.topic"></label>
             <input id="aqTopic" data-i18n-ph="aq.topicPh">
           </div>
-          <fieldset class="field aqsrc">
-            <legend data-i18n="aq.sources"></legend>
-            <label class="chk"><input type="checkbox" id="aqUseScopus" checked> Scopus</label>
-            <label class="chk"><input type="checkbox" id="aqUseWos" checked> Web of Science</label>
-          </fieldset>
+          <div class="field c">
+            <label for="aqcInput" data-i18n="aq.countries"></label>
+            <div class="chips" id="aqchips"><input id="aqcInput" list="countryList" data-i18n-ph="ph.country"></div>
+          </div>
           <div class="field">
             <label for="aqY1" data-i18n="wf.years"></label>
             <div class="years"><input id="aqY1" type="number" min="1900" max="2100" data-i18n-aria="aria.y1"><span>–</span><input id="aqY2" type="number" min="1900" max="2100" data-i18n-aria="aria.y2"></div>
@@ -435,6 +435,13 @@ footer p{max-width:90ch;margin:.3em 0}
           </div>
           <button class="go" id="aqGo" type="submit" data-i18n="aq.go"></button>
           <button class="ghost" id="aqStop" type="button" hidden data-i18n="aq.stop"></button>
+          <fieldset class="field aqsrc">
+            <legend data-i18n="aq.sources"></legend>
+            <label class="chk"><input type="checkbox" id="aqUseScopus" checked> Scopus</label>
+            <label class="chk"><input type="checkbox" id="aqUseWos" checked> Web of Science</label>
+            <label class="chk"><input type="checkbox" id="aqUseOa"> OpenAlex</label>
+            <label class="chk"><input type="checkbox" id="aqUseCr"> Crossref</label>
+          </fieldset>
         </form>
         <details class="adv" id="aqAdv">
           <summary data-i18n="aq.advanced"></summary>
@@ -883,14 +890,14 @@ fr: {
   "tst.scopusOk": "Scopus : clé acceptée{lvl}.", "tst.scopusFull": " (accès complet)", "tst.scopusLtd": " (accès limité : 25 notices par page, 5 000 au plus ; connectez-vous au réseau de votre établissement pour l'accès complet)",
   "tst.wosOk": "Web of Science : clé acceptée.", "tst.quota": "{b} : clé reconnue, mais limite de requêtes atteinte pour le moment (réessayez plus tard).", "tst.noKey": "{b} : pas de clé enregistrée.", "tst.refused": "{b} : clé refusée (statut {s}).", "tst.err": "{b} : erreur ({msg}).",
   "tst.wosOld": "Web of Science : le proxy n'est pas à jour. Recollez la dernière version de worker.js dans Cloudflare.",
-  "aq.topic": "Sujet (mots-clés)", "aq.topicPh": "ex. desalination", "aq.sources": "Sources", "aq.advanced": "Requête avancée (syntaxe propre à chaque base) et options",
+  "aq.topic": "Sujet (mots-clés)", "aq.topicPh": "ex. desalination", "aq.sources": "Sources", "aq.countries": "Pays (facultatif)", "aq.ctryCr": "Crossref ignoré : il ne permet pas de filtrer par pays (ses notices couvriraient tous les pays).", "aq.ctryWos": "Web of Science : le filtre pays (CU) a été refusé ; requête relancée sans filtre pays.", "aq.needTopicFor": "{b} : saisissez un sujet (mots-clés), base ignorée.", "aq.advanced": "Requête avancée (syntaxe propre à chaque base) et options",
   "aq.advNote": "Si vous remplissez une requête avancée, elle remplace le sujet pour cette base. Les années sont ajoutées automatiquement.", "aq.qScopus": "Requête Scopus", "aq.qWos": "Requête Web of Science",
-  "aq.help": "Cochez une ou plusieurs sources : chaque base est interrogée à son tour, puis les résultats rejoignent les fichiers importés et sont fusionnés et dédoublonnés avec eux. Vous pouvez relancer d'autres requêtes : elles s'ajoutent. Web of Science Starter ne fournit pas les adresses des auteurs : ses notices seules n'apparaissent pas sur la carte des pays.",
+  "aq.help": "Scopus et Web of Science demandent votre clé ; OpenAlex et Crossref sont libres. Cochez une ou plusieurs sources : chaque base est interrogée à son tour, puis les résultats rejoignent les fichiers importés et sont fusionnés et dédoublonnés avec eux. Vous pouvez relancer d'autres requêtes : elles s'ajoutent. Web of Science Starter ne fournit pas les adresses des auteurs : ses notices seules n'apparaissent pas sur la carte des pays.",
   "aq.needSource": "Cochez au moins une source.", "aq.needTopic": "Saisissez un sujet ou une requête avancée.", "aq.skip": "{b} : pas de requête, base ignorée.",
   "aq.ltd": " Accès Scopus limité (hors abonnement ou hors réseau de l'établissement) : 25 notices par page et 5 000 au plus.",
   "set.scopusKey": "Clé API Scopus (facultative)", "set.wosKey": "Clé API Web of Science Starter (facultative)",
   "set.apiKeys": "Clés Scopus et Web of Science : elles restent dans ce navigateur et ne sont jamais enregistrées par le site. Scopus est interrogé directement depuis votre ordinateur (connectez-vous au réseau ou au VPN de votre établissement si votre accès en dépend). Web of Science n'accepte pas les appels depuis une page web : la requête et la clé transitent par le proxy du site, qui ne les enregistre pas. Chacun reste responsable de l'usage de sa clé selon la licence de son établissement.",
-  "aq.title": "Interroger Scopus ou Web of Science avec votre clé", "aq.base": "Base", "aq.query": "Requête (syntaxe de la base)", "aq.max": "Notices max", "aq.go": "Lancer", "aq.stop": "Arrêter",
+  "aq.title": "Interroger Scopus, Web of Science, OpenAlex ou Crossref", "aq.base": "Base", "aq.query": "Requête (syntaxe de la base)", "aq.max": "Notices max", "aq.go": "Lancer", "aq.stop": "Arrêter",
   "aq.complete": "Données complètes Scopus (tous les auteurs et les mots-clés, utiles pour les réseaux ; 8 fois plus lent)",
   "aq.helpScopus": "Exemple : TITLE-ABS-KEY(desalination) AND AFFILCOUNTRY(Morocco). Syntaxe de la recherche avancée Scopus. Les années sont ajoutées automatiquement. Les résultats rejoignent les fichiers importés et sont fusionnés et dédoublonnés avec eux.",
   "aq.helpWos": "Exemple : TS=(desalination) AND OG=(Mohammed V University). Syntaxe Web of Science (TS, TI, AU, SO, OG, DO…). Les années sont ajoutées automatiquement. L'API Starter ne fournit pas les adresses des auteurs : les notices WoS seules n'apparaissent pas sur la carte des pays.",
@@ -1089,14 +1096,14 @@ en: {
   "tst.scopusOk": "Scopus: key accepted{lvl}.", "tst.scopusFull": " (full access)", "tst.scopusLtd": " (limited access: 25 records per page, 5,000 at most; connect to your institution's network for full access)",
   "tst.wosOk": "Web of Science: key accepted.", "tst.quota": "{b}: key recognized, but the request limit is reached for now (try again later).", "tst.noKey": "{b}: no key saved.", "tst.refused": "{b}: key refused (status {s}).", "tst.err": "{b}: error ({msg}).",
   "tst.wosOld": "Web of Science: the proxy is not up to date. Paste the latest worker.js into Cloudflare.",
-  "aq.topic": "Topic (keywords)", "aq.topicPh": "e.g. desalination", "aq.sources": "Sources", "aq.advanced": "Advanced query (each database's own syntax) and options",
+  "aq.topic": "Topic (keywords)", "aq.topicPh": "e.g. desalination", "aq.sources": "Sources", "aq.countries": "Countries (optional)", "aq.ctryCr": "Crossref skipped: it cannot filter by country (its records would cover all countries).", "aq.ctryWos": "Web of Science: the country filter (CU) was refused; query rerun without the country filter.", "aq.needTopicFor": "{b}: enter a topic (keywords); database skipped.", "aq.advanced": "Advanced query (each database's own syntax) and options",
   "aq.advNote": "If you fill in an advanced query, it replaces the topic for that database. Years are added automatically.", "aq.qScopus": "Scopus query", "aq.qWos": "Web of Science query",
-  "aq.help": "Tick one or more sources: each database is queried in turn, then the results join the imported files and are merged and deduplicated with them. You can run more queries: they add up. Web of Science Starter does not provide author addresses: WoS-only records do not appear on the country map.",
+  "aq.help": "Scopus and Web of Science need your key; OpenAlex and Crossref are open. Tick one or more sources: each database is queried in turn, then the results join the imported files and are merged and deduplicated with them. You can run more queries: they add up. Web of Science Starter does not provide author addresses: WoS-only records do not appear on the country map.",
   "aq.needSource": "Tick at least one source.", "aq.needTopic": "Enter a topic or an advanced query.", "aq.skip": "{b}: no query, database skipped.",
   "aq.ltd": " Limited Scopus access (no subscription or outside the institution's network): 25 records per page and 5,000 at most.",
   "set.scopusKey": "Scopus API key (optional)", "set.wosKey": "Web of Science Starter API key (optional)",
   "set.apiKeys": "Scopus and Web of Science keys stay in this browser and are never stored by the site. Scopus is queried directly from your computer (connect to your institution's network or VPN if your access depends on it). Web of Science does not accept calls from web pages: the query and key go through the site's proxy, which does not store them. Each user remains responsible for using their key under their institution's license.",
-  "aq.title": "Query Scopus or Web of Science with your key", "aq.base": "Database", "aq.query": "Query (database syntax)", "aq.max": "Max records", "aq.go": "Run", "aq.stop": "Stop",
+  "aq.title": "Query Scopus, Web of Science, OpenAlex or Crossref", "aq.base": "Database", "aq.query": "Query (database syntax)", "aq.max": "Max records", "aq.go": "Run", "aq.stop": "Stop",
   "aq.complete": "Complete Scopus data (all authors and keywords, useful for networks; 8 times slower)",
   "aq.helpScopus": "Example: TITLE-ABS-KEY(desalination) AND AFFILCOUNTRY(Morocco). Scopus advanced search syntax. Years are added automatically. Results join the imported files and are merged and deduplicated with them.",
   "aq.helpWos": "Example: TS=(desalination) AND OG=(Mohammed V University). Web of Science syntax (TS, TI, AU, SO, OG, DO…). Years are added automatically. The Starter API does not provide author addresses: WoS-only records do not appear on the country map.",
@@ -1869,7 +1876,9 @@ function renderMerge() {
    Results are converted into rows with the same column names as the exports, then merged like imported files.
    ====================================================================== */
 let aqCtl = null;
-const aqName = b => b === "wos" ? "Web of Science" : "Scopus";
+const aqName = b => ({ wos: "Web of Science", openalex: "OpenAlex", crossref: "Crossref" })[b] || "Scopus";
+let AQC = [];   // countries chosen for API queries (ISO codes)
+const aqChips = makeChips("aqchips", "aqcInput", () => AQC, v => { AQC = v; });
 const aqLine = (cls, text) => `<div class="${cls || ""}">${esc(text)}</div>`;
 function aqUi() {
   $("aqCompleteBox").hidden = !$("aqUseScopus").checked;
@@ -1978,10 +1987,14 @@ $("aqform").addEventListener("submit", async e => {
   const jobs = [];
   if ($("aqUseScopus").checked) jobs.push({ b: "scopus", q: $("aqQScopus").value.trim() || (topic ? `TITLE-ABS-KEY(${topic})` : "") });
   if ($("aqUseWos").checked) jobs.push({ b: "wos", q: $("aqQWos").value.trim() || (topic ? `TS=(${topic})` : "") });
+  if ($("aqUseOa").checked) jobs.push({ b: "openalex", q: topic });
+  if ($("aqUseCr").checked) jobs.push({ b: "crossref", q: topic });
+  if ($("aqcInput").value.trim()) aqChips.add();
+  const ctry = AQC.slice(), ctryEn = ctry.map(c => enName(c));
   if (!jobs.length) { $("aqMsg").innerHTML = aqLine("err", t("aq.needSource")); return; }
   if (!jobs.some(j => j.q)) { $("aqMsg").innerHTML = aqLine("err", t("aq.needTopic")); $("aqTopic").focus(); return; }
   for (const j of jobs) {
-    if (!j.q) continue;
+    if (!j.q || j.b === "openalex" || j.b === "crossref") continue;
     if (!(store.get(j.b === "wos" ? "wosKey" : "scopusKey", "") || "").trim()) {
       $("aqMsg").innerHTML = `<div class="err">${esc(t("aq.needKey", { b: aqName(j.b) }))}<button type="button" class="ghost" id="aqOpenSet">${esc(t("aq.openSettings"))}</button></div>`;
       $("aqOpenSet").addEventListener("click", openSettings); return;
@@ -1990,24 +2003,36 @@ $("aqform").addEventListener("submit", async e => {
   }
   const y1 = parseInt($("aqY1").value, 10), y2 = parseInt($("aqY2").value, 10);
   const max = Number($("aqMax").value) || 1000, complete = $("aqComplete").checked;
-  store.set("aqlast", JSON.stringify({ topic, qs: $("aqQScopus").value, qw: $("aqQWos").value, us: $("aqUseScopus").checked, uw: $("aqUseWos").checked, y1: $("aqY1").value, y2: $("aqY2").value, max, complete }));
+  store.set("aqlast", JSON.stringify({ topic, qs: $("aqQScopus").value, qw: $("aqQWos").value, us: $("aqUseScopus").checked, uw: $("aqUseWos").checked, uo: $("aqUseOa").checked, uc: $("aqUseCr").checked, ctry, y1: $("aqY1").value, y2: $("aqY2").value, max, complete }));
   aqCtl = new AbortController();
   $("aqGo").disabled = true; $("aqStop").hidden = false; setProgress(-1);
   const lines = [], show = cur => { $("aqMsg").innerHTML = lines.join("") + (cur || ""); };
   for (let k = 0; k < jobs.length; k++) {
     const { b } = jobs[k];
     let q = jobs[k].q;
-    if (!q) { lines.push(aqLine("", t("aq.skip", { b: aqName(b) }))); show(); continue; }
-    if (y1 || y2) {
-      const a = y1 || 1900, z = y2 || CUR_YEAR;
-      q = b === "wos" ? `(${q}) AND PY=(${a}-${z})` : `(${q}) AND PUBYEAR > ${a - 1} AND PUBYEAR < ${z + 1}`;
+    if (!q) { lines.push(aqLine("", t(b === "openalex" || b === "crossref" ? "aq.needTopicFor" : "aq.skip", { b: aqName(b) }))); show(); continue; }
+    if (b === "crossref" && ctry.length) { lines.push(aqLine("", t("aq.ctryCr"))); show(); continue; }
+    const a = y1 || (y2 ? 1900 : 0), z = y2 || (y1 ? CUR_YEAR : 0);
+    let qNoCtry = null;
+    if (b === "scopus" || b === "wos") {
+      if (a) q = b === "wos" ? `(${q}) AND PY=(${a}-${z})` : `(${q}) AND PUBYEAR > ${a - 1} AND PUBYEAR < ${z + 1}`;
+      if (ctry.length) {
+        qNoCtry = q;
+        q = b === "wos" ? `(${q}) AND CU=(${ctryEn.map(n => `"${n}"`).join(" OR ")})` : `(${q}) AND (${ctryEn.map(n => `AFFILCOUNTRY("${n}")`).join(" OR ")})`;
+      }
     }
-    const key = store.get(b === "wos" ? "wosKey" : "scopusKey", "").trim(), bmax = b === "wos" ? Math.min(max, 5000) : max;
+    const key = (store.get(b === "wos" ? "wosKey" : "scopusKey", "") || "").trim(), bmax = b === "wos" ? Math.min(max, 5000) : max;
     let got = [], total = 0, limited = false, stopped = false;
     const progress = (n, m, wait) => { show(aqLine("", t("aq.progress", { b: aqName(b), n: fmt(n), m: fmt(m) }) + (wait ? t("aq.wait", { s: wait }) : ""))); setProgress(m ? (k + n / m) / jobs.length : -1); };
     progress(0, bmax);
     try {
-      const res = b === "wos" ? await fetchWos(q, bmax, key, aqCtl.signal, progress) : await fetchScopus(q, bmax, complete, key, aqCtl.signal, progress);
+      let res;
+      if (b === "openalex") res = await fetchOpenAlex(q, ctry, a, z, bmax, aqCtl.signal, progress);
+      else if (b === "crossref") res = await fetchCrossref(q, a, z, bmax, aqCtl.signal, progress);
+      else if (b === "wos") {
+        try { res = await fetchWos(q, bmax, key, aqCtl.signal, progress); }
+        catch (e) { if (e.status === 400 && qNoCtry) { lines.push(aqLine("", t("aq.ctryWos"))); res = await fetchWos(qNoCtry, bmax, key, aqCtl.signal, progress); } else throw e; }
+      } else res = await fetchScopus(q, bmax, complete, key, aqCtl.signal, progress);
       got = res.rows; total = res.total; limited = !!res.limited;
       lines.push(got.length ? aqLine("ok", t("aq.done", { b: aqName(b), n: fmt(got.length), t: fmt(total) }) + (limited ? t("aq.ltd") : "")) : aqLine("", t("aq.empty", { b: aqName(b) })));
     } catch (err) {
@@ -2016,9 +2041,9 @@ $("aqform").addEventListener("submit", async e => {
     }
     show();
     if (got.length) {
-      const base = b === "wos" ? "WoS" : "Scopus";
+      const base = ({ wos: "WoS", openalex: "OpenAlex", crossref: "Crossref" })[b] || "Scopus";
       const { out, dropped } = dedupeWithin(got.map(r => normalize(r, base)));
-      FILES.push({ name: aqName(b) + " API · " + jobs[k].q.slice(0, 60), base, recs: out, raw: got.length, internal: dropped });
+      FILES.push({ name: aqName(b) + " API · " + jobs[k].q.slice(0, 60) + (ctry.length ? " · " + ctry.join(", ") : ""), base, recs: out, raw: got.length, internal: dropped });
       refreshFiles();
     }
     if (stopped) break;
@@ -2031,11 +2056,81 @@ try {
   if (al && typeof al === "object") {
     $("aqTopic").value = al.topic || ""; $("aqQScopus").value = al.qs || ""; $("aqQWos").value = al.qw || "";
     if (al.us != null) $("aqUseScopus").checked = !!al.us; if (al.uw != null) $("aqUseWos").checked = !!al.uw;
+    $("aqUseOa").checked = !!al.uo; $("aqUseCr").checked = !!al.uc;
+    if (Array.isArray(al.ctry)) AQC = al.ctry.filter(c => ISO.includes(c));
     $("aqY1").value = al.y1 || ""; $("aqY2").value = al.y2 || ""; $("aqComplete").checked = !!al.complete; if (al.max) $("aqMax").value = String(al.max);
     if (al.qs || al.qw) $("aqAdv").open = true;
   }
 } catch {}
-aqUi();
+aqUi(); aqChips.draw();
+
+/* OpenAlex: free, through the site's proxy (with its key) or directly; cursor pagination, 200 per page. */
+async function fetchOpenAlex(topic, ctry, a, z, max, signal, progress) {
+  const out = []; let cursor = "*", total = 0;
+  const filter = buildFilter({ q: topic, countries: ctry }, { y1: a || 1900, y2: z || CUR_YEAR, type: "", oa: false });
+  while (out.length < max && cursor) {
+    if (signal.aborted) throw new DOMException("Aborted", "AbortError");
+    let j;
+    try {
+      j = await getJSON(oaURL("/works", { filter, per_page: Math.min(200, max - out.length), cursor,
+        select: "id,doi,display_name,publication_year,cited_by_count,authorships,primary_location,open_access,keywords,type" }));
+    } catch (e) { throw Object.assign(new Error(t("aq.err", { b: "OpenAlex", msg: e.message })), { shown: true }); }
+    total = (j.meta && j.meta.count) || 0;
+    const res = j.results || [];
+    if (!res.length) break;
+    out.push(...res); progress(out.length, Math.min(total, max));
+    cursor = j.meta && j.meta.next_cursor;
+    await sleep(100);
+  }
+  return { total, rows: out.slice(0, max).map(openAlexRow) };
+}
+function openAlexRow(w) {
+  const au = w.authorships || [];
+  const affil = au.flatMap(a => (a.institutions || []).length
+    ? a.institutions.map(i => [i.display_name, i.country_code ? enName(String(i.country_code).toUpperCase()) : ""].filter(Boolean).join(", "))
+    : (a.countries || []).map(c => enName(String(c).toUpperCase())));
+  const src = w.primary_location && w.primary_location.source;
+  const oa = w.open_access || {};
+  return {
+    "title": w.display_name || "", "year": String(w.publication_year || ""), "cited by": w.cited_by_count ?? "",
+    "source title": (src && src.display_name) || "", "doi": w.doi || "",
+    "authors": au.map(a => a.author && a.author.display_name).filter(Boolean).join("; "),
+    "affiliations": [...new Set(affil)].join("; "),
+    "open access": oa.is_oa ? (oa.oa_status === "diamond" ? "gold" : oa.oa_status || "open") : "", "document type": w.type || "",
+    "author keywords": (w.keywords || []).map(k => k.display_name).filter(Boolean).join("; ")
+  };
+}
+/* Crossref: free, called directly; cursor pagination. It has no reliable affiliations, so no country filter. */
+async function fetchCrossref(topic, a, z, max, signal, progress) {
+  const out = []; let cursor = "*", total = 0;
+  while (out.length < max && cursor) {
+    const u = new URL("https://api.crossref.org/works");
+    u.searchParams.set("query.bibliographic", topic);
+    const f = []; if (a) f.push("from-pub-date:" + a); if (z) f.push("until-pub-date:" + z);
+    if (f.length) u.searchParams.set("filter", f.join(","));
+    u.searchParams.set("rows", String(Math.min(200, max - out.length))); u.searchParams.set("cursor", cursor);
+    u.searchParams.set("select", "DOI,title,issued,is-referenced-by-count,container-title,author,type,subject");
+    const j = await aqFetch("crossref", u.toString(), { signal }, s => progress(out.length, Math.min(total || max, max), s));
+    const m = j.message || {};
+    total = m["total-results"] || 0;
+    const items = m.items || [];
+    if (!items.length) break;
+    out.push(...items); progress(out.length, Math.min(total, max));
+    cursor = m["next-cursor"]; await sleep(300);
+  }
+  return { total, rows: out.slice(0, max).map(crossrefRow) };
+}
+function crossrefRow(it) {
+  const au = it.author || [];
+  const dp = it.issued && it.issued["date-parts"] && it.issued["date-parts"][0];
+  return {
+    "title": (it.title || [])[0] || "", "year": dp && dp[0] ? String(dp[0]) : "", "cited by": it["is-referenced-by-count"] ?? "",
+    "source title": (it["container-title"] || [])[0] || "", "doi": it.DOI || "",
+    "authors": au.map(x => [x.family, x.given].filter(Boolean).join(", ") || x.name).filter(Boolean).join("; "),
+    "affiliations": [...new Set(au.flatMap(x => (x.affiliation || []).map(y => y.name)).filter(Boolean))].join("; "),
+    "document type": it.type || "", "author keywords": (it.subject || []).join("; ")
+  };
+}
 
 let dlNS; // "downloads" capability when viewed inside claude.ai; otherwise a regular browser download
 if (window.claude && typeof window.claude.use === "function") window.claude.use("downloads").then(ns => { dlNS = ns; }).catch(() => { dlNS = null; });
@@ -3500,7 +3595,7 @@ $("auto").addEventListener("change", setAuto);
 function setLang(l) {
   if (l === LANG) return;
   LANG = l; store.set("lang", l); nf = new Intl.NumberFormat(LOC());
-  applyStatic(); fillDatalists(); fillWbIndicators(); pubChips.draw(); patChips.draw(); wbChips.draw();
+  applyStatic(); fillDatalists(); fillWbIndicators(); pubChips.draw(); patChips.draw(); wbChips.draw(); aqChips.draw();
   if ($("c2").value.trim()) { const c = resolveCountryInput($("c2").value); if (c) $("c2").value = cname(c); }
   if (MODE === "live") run();
   else if (MODE === "pat") runPat();
