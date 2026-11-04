@@ -1914,7 +1914,8 @@ async function fetchScopus(q, max, complete, key, signal, progress) {
     if (m.cursor) u.searchParams.set("cursor", cursor); else u.searchParams.set("start", String(start));
     let j;
     try { j = await aqFetch("scopus", u.toString(), { headers: { Accept: "application/json" }, signal }, s => progress(out.length, Math.min(total || max, max), s)); }
-    catch (e) { if (e.status === 400 && !out.length && mi < modes.length - 1) { mi++; continue; } throw e; }
+    // 400 or 403 on the first page (e.g. "Use of the cursor parameter is restricted"): try the next, more limited mode.
+    catch (e) { if ((e.status === 400 || e.status === 403) && !out.length && mi < modes.length - 1) { mi++; continue; } throw e; }
     const sr = j["search-results"] || {};
     total = parseInt(sr["opensearch:totalResults"], 10) || 0;
     const entries = (sr.entry || []).filter(e => !e.error);
@@ -3465,7 +3466,7 @@ $("testWorker").addEventListener("click", async () => {
     try {
       const r = await fetch(base + "&count=200&cursor=*", { headers: { Accept: "application/json" } });
       if (r.ok) lines.push(aqLine("ok", t("tst.scopusOk", { lvl: t("tst.scopusFull") })));
-      else if (r.status === 400) {
+      else if (r.status === 400 || r.status === 403) {
         const r2 = await fetch(base + "&count=1", { headers: { Accept: "application/json" } });
         lines.push(r2.ok ? aqLine("ok", t("tst.scopusOk", { lvl: t("tst.scopusLtd") })) : r2.status === 429 ? aqLine("ok", t("tst.quota", { b: "Scopus" })) : aqLine("err", t("tst.refused", { b: "Scopus", s: r2.status })));
       } else if (r.status === 429) lines.push(aqLine("ok", t("tst.quota", { b: "Scopus" })));
