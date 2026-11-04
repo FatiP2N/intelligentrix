@@ -902,7 +902,7 @@ fr: {
   "aq.helpScopus": "Exemple : TITLE-ABS-KEY(desalination) AND AFFILCOUNTRY(Morocco). Syntaxe de la recherche avancée Scopus. Les années sont ajoutées automatiquement. Les résultats rejoignent les fichiers importés et sont fusionnés et dédoublonnés avec eux.",
   "aq.helpWos": "Exemple : TS=(desalination) AND OG=(Mohammed V University). Syntaxe Web of Science (TS, TI, AU, SO, OG, DO…). Les années sont ajoutées automatiquement. L'API Starter ne fournit pas les adresses des auteurs : les notices WoS seules n'apparaissent pas sur la carte des pays.",
   "aq.needKey": "Ajoutez d'abord votre clé {b} dans « Sources & clés API ».", "aq.openSettings": "Ouvrir", "aq.needWorker": "Web of Science passe par le proxy du site : renseignez l'URL du proxy dans « Sources & clés API ».",
-  "aq.needQuery": "Saisissez une requête.", "aq.progress": "{b} : {n} / {m} notices récupérées…", "aq.wait": " Pause de {s} s (limite de l'API).",
+  "aq.needQuery": "Saisissez une requête.", "aq.progress": "{b} : {n} / {m} notices récupérées…", "aq.wait": " Pause de {s} s (limite de l'API).", "aq.partial": " Les {n} notices déjà récupérées ont été ajoutées.",
   "aq.done": "{b} : {n} notices ajoutées ({t} résultats au total pour cette requête).", "aq.stopped": "Arrêté : {n} notices récupérées ont été ajoutées.", "aq.empty": "{b} : aucun résultat pour cette requête.",
   "aq.err401": "{b} : clé refusée (statut {s}). Vérifiez la clé ; pour Scopus, connectez-vous aussi au réseau ou au VPN de votre établissement.",
   "aq.err403": "{b} : accès refusé (statut {s}). Votre accès ne couvre peut-être pas cette demande ; pour Scopus, essayez sans « Données complètes ».",
@@ -1108,7 +1108,7 @@ en: {
   "aq.helpScopus": "Example: TITLE-ABS-KEY(desalination) AND AFFILCOUNTRY(Morocco). Scopus advanced search syntax. Years are added automatically. Results join the imported files and are merged and deduplicated with them.",
   "aq.helpWos": "Example: TS=(desalination) AND OG=(Mohammed V University). Web of Science syntax (TS, TI, AU, SO, OG, DO…). Years are added automatically. The Starter API does not provide author addresses: WoS-only records do not appear on the country map.",
   "aq.needKey": "First add your {b} key in “Sources & API keys”.", "aq.openSettings": "Open", "aq.needWorker": "Web of Science goes through the site's proxy: enter the proxy URL in “Sources & API keys”.",
-  "aq.needQuery": "Enter a query.", "aq.progress": "{b}: {n} / {m} records retrieved…", "aq.wait": " Pausing {s} s (API limit).",
+  "aq.needQuery": "Enter a query.", "aq.progress": "{b}: {n} / {m} records retrieved…", "aq.wait": " Pausing {s} s (API limit).", "aq.partial": " The {n} records already retrieved were added.",
   "aq.done": "{b}: {n} records added ({t} results in total for this query).", "aq.stopped": "Stopped: the {n} records retrieved were added.", "aq.empty": "{b}: no results for this query.",
   "aq.err401": "{b}: key refused (status {s}). Check the key; for Scopus, also connect to your institution's network or VPN.",
   "aq.err403": "{b}: access denied (status {s}). Your access may not cover this request; for Scopus, try without “Complete data”.",
@@ -1876,6 +1876,12 @@ function renderMerge() {
    Results are converted into rows with the same column names as the exports, then merged like imported files.
    ====================================================================== */
 let aqCtl = null;
+/* a pause that ends at once when the visitor clicks "Stop" */
+const aqSleep = (ms, signal) => new Promise((res, rej) => {
+  if (signal && signal.aborted) return rej(new DOMException("Aborted", "AbortError"));
+  const id = setTimeout(res, ms);
+  if (signal) signal.addEventListener("abort", () => { clearTimeout(id); rej(new DOMException("Aborted", "AbortError")); }, { once: true });
+});
 const aqName = b => ({ wos: "Web of Science", openalex: "OpenAlex", crossref: "Crossref" })[b] || "Scopus";
 let AQC = [];   // countries chosen for API queries (ISO codes)
 const aqChips = makeChips("aqchips", "aqcInput", () => AQC, v => { AQC = v; });
@@ -1900,20 +1906,25 @@ async function aqFetch(b, url, opts, onWait) {
   for (let attempt = 0; ; attempt++) {
     let r;
     try { r = await fetch(url, opts); }
-    catch (e) { if (e.name === "AbortError") throw e; throw Object.assign(new Error(t("aq.errNet", { b: aqName(b), msg: e.message })), { shown: true, net: true }); }
+    catch (e) {
+      if (e.name === "AbortError") throw e;
+      // a connection cut by the server (often Crossref when busy): retry twice, a little later
+      if (attempt < 2) { onWait(3 * (attempt + 1)); await aqSleep(3000 * (attempt + 1), opts && opts.signal); continue; }
+      throw Object.assign(new Error(t("aq.errNet", { b: aqName(b), msg: e.message })), { shown: true, net: true });
+    }
     if (r.status === 429 && attempt < 6) {
       const s = Math.min(60, Math.max(2, parseInt(r.headers.get("Retry-After"), 10) || 2 * (attempt + 1)));
-      onWait(s); await sleep(s * 1000); continue;
+      onWait(s); await aqSleep(s * 1000, opts && opts.signal); continue;
     }
     if (!r.ok) throw aqErr(b, r.status, await apiErrText(r));
     return r.json();
   }
 }
 /* Scopus Search. Tries the subscriber mode first, then falls back to the limited mode if Elsevier refuses it (400). */
-async function fetchScopus(q, max, complete, key, signal, progress) {
+async function fetchScopus(q, max, complete, key, signal, progress, out) {
   const modes = [{ cursor: true, per: complete ? 25 : 200 }, { cursor: true, per: 25 }, { cursor: false, per: 25 }];
   let mi = complete ? 1 : 0;
-  const out = []; let cursor = "*", start = 0, total = 0;
+  let cursor = "*", start = 0, total = 0;
   while (out.length < max) {
     const m = modes[mi];
     const u = new URL("https://api.elsevier.com/content/search/scopus");
@@ -1936,7 +1947,7 @@ async function fetchScopus(q, max, complete, key, signal, progress) {
     if (m.cursor) { const nx = sr.cursor && sr.cursor["@next"]; if (!nx || nx === cursor) break; cursor = nx; }
     await sleep(150);
   }
-  return { total, limited: mi === 2, rows: out.slice(0, max).map(scopusRow) };
+  return { total, limited: mi === 2 };
 }
 function scopusRow(e) {
   const arr = x => x == null ? [] : Array.isArray(x) ? x : [x];
@@ -1954,8 +1965,8 @@ function scopusRow(e) {
   };
 }
 /* Web of Science Starter: 50 records per page, through the Worker. */
-async function fetchWos(q, max, key, signal, progress) {
-  const out = []; let page = 1, total = 0;
+async function fetchWos(q, max, key, signal, progress, out) {
+  let page = 1, total = 0;
   while (out.length < max) {
     const u = new URL(cfg.worker + "/wos/documents");
     u.searchParams.set("db", "WOS"); u.searchParams.set("q", q); u.searchParams.set("limit", "50"); u.searchParams.set("page", String(page));
@@ -1967,7 +1978,7 @@ async function fetchWos(q, max, key, signal, progress) {
     if (out.length >= total) break;
     page++; await sleep(600);
   }
-  return { total, rows: out.slice(0, max).map(wosRow) };
+  return { total };
 }
 function wosRow(h) {
   const arr = x => x == null ? [] : Array.isArray(x) ? x : [x];
@@ -2023,21 +2034,23 @@ $("aqform").addEventListener("submit", async e => {
     }
     const key = (store.get(b === "wos" ? "wosKey" : "scopusKey", "") || "").trim(), bmax = b === "wos" ? Math.min(max, 5000) : max;
     let got = [], total = 0, limited = false, stopped = false;
+    const acc = [], mapRow = ({ wos: wosRow, openalex: openAlexRow, crossref: crossrefRow })[b] || scopusRow;
     const progress = (n, m, wait) => { show(aqLine("", t("aq.progress", { b: aqName(b), n: fmt(n), m: fmt(m) }) + (wait ? t("aq.wait", { s: wait }) : ""))); setProgress(m ? (k + n / m) / jobs.length : -1); };
     progress(0, bmax);
     try {
       let res;
-      if (b === "openalex") res = await fetchOpenAlex(q, ctry, a, z, bmax, aqCtl.signal, progress);
-      else if (b === "crossref") res = await fetchCrossref(q, a, z, bmax, aqCtl.signal, progress);
+      if (b === "openalex") res = await fetchOpenAlex(q, ctry, a, z, bmax, aqCtl.signal, progress, acc);
+      else if (b === "crossref") res = await fetchCrossref(q, a, z, bmax, aqCtl.signal, progress, acc);
       else if (b === "wos") {
-        try { res = await fetchWos(q, bmax, key, aqCtl.signal, progress); }
-        catch (e) { if (e.status === 400 && qNoCtry) { lines.push(aqLine("", t("aq.ctryWos"))); res = await fetchWos(qNoCtry, bmax, key, aqCtl.signal, progress); } else throw e; }
-      } else res = await fetchScopus(q, bmax, complete, key, aqCtl.signal, progress);
-      got = res.rows; total = res.total; limited = !!res.limited;
+        try { res = await fetchWos(q, bmax, key, aqCtl.signal, progress, acc); }
+        catch (e) { if (e.status === 400 && qNoCtry && !acc.length) { lines.push(aqLine("", t("aq.ctryWos"))); res = await fetchWos(qNoCtry, bmax, key, aqCtl.signal, progress, acc); } else throw e; }
+      } else res = await fetchScopus(q, bmax, complete, key, aqCtl.signal, progress, acc);
+      got = acc.slice(0, bmax).map(mapRow); total = res.total; limited = !!res.limited;
       lines.push(got.length ? aqLine("ok", t("aq.done", { b: aqName(b), n: fmt(got.length), t: fmt(total) }) + (limited ? t("aq.ltd") : "")) : aqLine("", t("aq.empty", { b: aqName(b) })));
     } catch (err) {
+      got = acc.slice(0, bmax).map(mapRow);   // records already retrieved are kept
       if (err.name === "AbortError") { stopped = true; lines.push(aqLine("", t("aq.stopped", { n: fmt(got.length) }))); }
-      else lines.push(aqLine("err", err.shown ? err.message : t("aq.err", { b: aqName(b), msg: err.message })));
+      else lines.push(aqLine("err", (err.shown ? err.message : t("aq.err", { b: aqName(b), msg: err.message })) + (got.length ? t("aq.partial", { n: fmt(got.length) }) : "")));
     }
     show();
     if (got.length) {
@@ -2065,8 +2078,8 @@ try {
 aqUi(); aqChips.draw();
 
 /* OpenAlex: free, through the site's proxy (with its key) or directly; cursor pagination, 200 per page. */
-async function fetchOpenAlex(topic, ctry, a, z, max, signal, progress) {
-  const out = []; let cursor = "*", total = 0;
+async function fetchOpenAlex(topic, ctry, a, z, max, signal, progress, out) {
+  let cursor = "*", total = 0;
   const filter = buildFilter({ q: topic, countries: ctry }, { y1: a || 1900, y2: z || CUR_YEAR, type: "", oa: false });
   while (out.length < max && cursor) {
     if (signal.aborted) throw new DOMException("Aborted", "AbortError");
@@ -2082,7 +2095,7 @@ async function fetchOpenAlex(topic, ctry, a, z, max, signal, progress) {
     cursor = j.meta && j.meta.next_cursor;
     await sleep(100);
   }
-  return { total, rows: out.slice(0, max).map(openAlexRow) };
+  return { total };
 }
 function openAlexRow(w) {
   const au = w.authorships || [];
@@ -2100,17 +2113,20 @@ function openAlexRow(w) {
     "author keywords": (w.keywords || []).map(k => k.display_name).filter(Boolean).join("; ")
   };
 }
-/* Crossref: free, called directly; cursor pagination. It has no reliable affiliations, so no country filter. */
-async function fetchCrossref(topic, a, z, max, signal, progress) {
-  const out = []; let cursor = "*", total = 0;
+/* Crossref: free, called directly (or through the site's proxy if the direct call keeps failing); cursor pagination.
+   It has no reliable affiliations, so no country filter. */
+async function fetchCrossref(topic, a, z, max, signal, progress, out) {
+  let cursor = "*", total = 0, viaProxy = false;
   while (out.length < max && cursor) {
-    const u = new URL("https://api.crossref.org/works");
+    const u = new URL(viaProxy ? cfg.worker + "/crossref/works" : "https://api.crossref.org/works");
     u.searchParams.set("query.bibliographic", topic);
     const f = []; if (a) f.push("from-pub-date:" + a); if (z) f.push("until-pub-date:" + z);
     if (f.length) u.searchParams.set("filter", f.join(","));
     u.searchParams.set("rows", String(Math.min(200, max - out.length))); u.searchParams.set("cursor", cursor);
     u.searchParams.set("select", "DOI,title,issued,is-referenced-by-count,container-title,author,type,subject");
-    const j = await aqFetch("crossref", u.toString(), { signal }, s => progress(out.length, Math.min(total || max, max), s));
+    let j;
+    try { j = await aqFetch("crossref", u.toString(), { signal }, s => progress(out.length, Math.min(total || max, max), s)); }
+    catch (e) { if (e.net && !viaProxy && cfg.worker) { viaProxy = true; continue; } throw e; }
     const m = j.message || {};
     total = m["total-results"] || 0;
     const items = m.items || [];
@@ -2118,7 +2134,7 @@ async function fetchCrossref(topic, a, z, max, signal, progress) {
     out.push(...items); progress(out.length, Math.min(total, max));
     cursor = m["next-cursor"]; await sleep(300);
   }
-  return { total, rows: out.slice(0, max).map(crossrefRow) };
+  return { total };
 }
 function crossrefRow(it) {
   const au = it.author || [];
@@ -3296,7 +3312,7 @@ function setMode(m) {
   if (isCustom) { $("liveControls").hidden = true; $("autoBox").hidden = true; $("statusBar").hidden = true; }
   $("pubView").hidden = m === "pat" || m === "about" || m === "wb" || isCustom; $("patView").hidden = m !== "pat"; $("wbView").hidden = m !== "wb"; $("aboutView").hidden = m !== "about"; $("customView").hidden = !isCustom;
   try {
-    const want = m === "about" ? "#about" : m === "wb" ? "#worldbank" : isCustom ? "#" + cid : "";
+    const want = ({ about: "#about", wb: "#worldbank", pat: "#patents", file: "#import" })[m] || (isCustom ? "#" + cid : "");
     if (want && location.hash !== want) location.hash = want.slice(1);
     else if (!want && location.hash && location.hash !== "#") history.replaceState(null, "", location.pathname + location.search);
   } catch {}
@@ -3322,6 +3338,9 @@ window.addEventListener("hashchange", () => {
   const h = location.hash.slice(1);
   if (h === "about" && MODE !== "about") setMode("about");
   else if (h === "worldbank" && MODE !== "wb") setMode("wb");
+  else if (h === "patents" && MODE !== "pat") setMode("pat");
+  else if (h === "import" && MODE !== "file") setMode("file");
+  else if (!h && MODE !== "live" && !MODE.startsWith("custom:")) setMode("live");
   else if (h && CUSTOM.some(x => x.id === h) && MODE !== "custom:" + h) setMode("custom:" + h);
 });
 function renderAbout() {
@@ -3642,7 +3661,9 @@ fillWbIndicators(); $("wy2").value = CUR_YEAR;
 pubChips.draw(); patChips.draw(); wbChips.draw();
 $("qform").addEventListener("submit", e => { e.preventDefault(); run(); });
 setAuto();
-if (location.hash === "#about") setMode("about"); else if (location.hash === "#worldbank") setMode("wb"); else run();
+// The open tab is kept in the address (#patents, #worldbank, #import, #about…), so reloading the page stays on it.
+{ const start = ({ "#about": "about", "#worldbank": "wb", "#patents": "pat", "#import": "file" })[location.hash];
+  if (start) setMode(start); else run(); }
 loadSite();
 })();
 </script>
