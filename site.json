@@ -1,9 +1,14 @@
 {
   "siteName": "Intelligentrix",
+  "siteNameAccent": "trix",  "siteName": "Intelligentrix",
   "siteNameAccent": "trix",
+  "logo": "images/logo.png",
+  "logoHeight": 44,
+  "logoOnly": false,
+  "favicon": "images/favicon.png",
   "about": {
-    "name": "",
-    "contact": ""
+    "name": "Belmehdi. F, Tamtam. S",
+    "contact": "fatima.belmehdigmail.com"
   },
   "colors": {
     "main": "#1C6E8C",
