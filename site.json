@@ -1,15 +1,15 @@
-{
-  "siteName": "Intelligentrix",
-  "siteNameAccent": "trix",  "siteName": "Intelligentrix",
-  "siteNameAccent": "trix",
-  "logo": "images/logo.png",
-  "logoHeight": 44,
-  "logoOnly": false,
-  "favicon": "images/favicon.png",
-  "about": {
-    "name": "Belmehdi. F, Tamtam. S",
-    "contact": "fatima.belmehdigmail.com"
-  },
+   {
+     "siteName": "Intelligentrix",
+     "siteNameAccent": "trix",
+     "logo": "logo.png",
+     "logoHeight": 44,
+     "logoOnly": false,
+     "favicon": "favicon.png",
+     "about": {
+       "name": "Belmehdi. F, Tamtam. S",
+       "contact": "fatima.belmehdi@gmail.com"
+     },
+     
   "colors": {
     "main": "#1C6E8C",
     "second": "#B4741C",
