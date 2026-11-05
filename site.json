@@ -1,10 +1,10 @@
    {
      "siteName": "Intelligentrix",
      "siteNameAccent": "trix",
-     "logo": "logo.png",
+     "logo": "images/logo.png",
      "logoHeight": 44,
      "logoOnly": false,
-     "favicon": "favicon.png",
+     "favicon": "images/favicon.png",
      "about": {
        "name": "Belmehdi. F, Tamtam. S",
        "contact": "fatima.belmehdi@gmail.com"
