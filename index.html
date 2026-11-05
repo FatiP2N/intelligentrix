@@ -317,7 +317,7 @@ footer p{max-width:90ch;margin:.3em 0}
         <button type="button" data-lang="fr" aria-pressed="true">FR</button>
         <button type="button" data-lang="en" aria-pressed="false">EN</button>
       </div>
-      <button class="ghost" id="btnSettings" type="button" aria-expanded="false" data-i18n="btn.settings"></button>
+      <button class="ghost" id="btnSettings" type="button" aria-expanded="false" hidden data-i18n="btn.settings"></button>
     </div>
 
     <div id="liveControls">
@@ -3398,6 +3398,9 @@ function setMode(m) {
   $("tabAbout").setAttribute("aria-selected", String(m === "about"));
   $("tabWb").setAttribute("aria-selected", String(m === "wb"));
   document.body.classList.toggle("mode-file", m === "file");
+  // "Sources & API keys" is only offered in the Import and merge tab
+  $("btnSettings").hidden = m !== "file";
+  if (m !== "file") { $("settings").hidden = true; $("btnSettings").setAttribute("aria-expanded", "false"); }
   $("liveControls").hidden = m !== "live"; $("patControls").hidden = m !== "pat"; $("importer").hidden = m !== "file"; $("wbControls").hidden = m !== "wb";
   $("autoBox").hidden = m === "file" || m === "wb"; $("statusBar").hidden = m === "about";
   const isCustom = m.startsWith("custom:"), cid = isCustom ? m.slice(7) : "";
