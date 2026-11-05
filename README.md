@@ -140,7 +140,9 @@ const SITE_CONFIG = {
 - **Applicants, applicant countries, classification and networks** in live EPO mode are computed on the
   bibliographic records of the first 100 families returned by the EPO.
 - **Legal status** is not available in aggregate form from the EPO and is shown only when the source provides it.
-- If the proxy does not respond, the site shows the last data received in the browser, with a retry button.
+- **When a source does not respond** (OpenAlex, World Bank, Crossref, EPO), the site shows the last data it received, with
+  their date and a retry button: from the visitor's browser, or from the Worker, which keeps the last good answer of
+  each request for 30 days.
 - Patents are published about 18 months after filing, so the two most recent years are incomplete.
 
 ## Credits

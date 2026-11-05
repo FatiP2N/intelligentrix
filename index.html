@@ -265,6 +265,8 @@ footer p{max-width:90ch;margin:.3em 0}
 #wbView .kpi .v{color:var(--wb)}
 #tWRank tr.sel td{background:var(--wb-soft)}
 .ph .chk{display:inline-flex;align-items:center;gap:6px;font-size:.82rem;color:var(--muted);padding:0;cursor:pointer}
+.wb-chart .stale,.stale{color:var(--bad);font-size:.8rem}
+.banner.err{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 8%,var(--surface))}
 .wb-chart{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px;margin:8px 0 18px}.wb-chart .wbc-src{margin:6px 0 0}.wb-chart .na{padding:24px 0}
 .w-about{font-size:13.5px;line-height:1.55;color:var(--ink)}.w-about p{margin:0 0 8px;max-width:90ch}.w-about .mono{font-size:12px}
 @media (max-width:900px){.kpis.k5{grid-template-columns:repeat(3,minmax(0,1fr))}}
@@ -711,6 +713,7 @@ footer p{max-width:90ch;margin:.3em 0}
     </div>
   </div>
   <div id="wbView" hidden>
+    <div class="banner err" id="wStale" hidden></div>
     <p class="scope" id="wscope"></p>
     <section class="kpis k4" data-i18n-aria="tab.wb">
       <div class="kpi"><span class="k" id="wK1k" data-i18n="wk.latest"></span><span class="v" id="wK1">—</span><span class="s" id="wK1s"></span></div>
@@ -914,7 +917,7 @@ fr: {
   "wp.mapNote": "Cliquez un pays sur la carte ou dans le tableau pour l'ajouter à la comparaison ou l'en retirer. Les agrégats régionaux sont exclus du classement.",
   "wbtn.csv": "Télécharger CSV", "w.src": "Banque mondiale · WDI", "w.world": "Monde", "w.code": "Code", "w.source": "Source", "w.updated": "Dernière mise à jour de la Banque mondiale",
   "wst.loading": "Interrogation de la Banque mondiale…", "wst.ok": "Données de la Banque mondiale chargées", "wst.err": "La Banque mondiale ne répond pas ({msg}). Réessayez dans un instant.",
-  "wst.badCode": "Indicateur introuvable à la Banque mondiale : {code}", "wst.noData": "Aucune donnée pour cette sélection.", "wst.needCode": "Saisissez le code d'un indicateur de la Banque mondiale.",
+  "wst.badCode": "Indicateur introuvable à la Banque mondiale : {code}", "wst.noData": "Aucune donnée pour cette sélection.", "src.wb": "La Banque mondiale", "stale.banner": "{src} ne répond pas pour le moment : affichage des dernières données enregistrées, datées du {date}.", "stale.part": "Classement mondial : la source ne répond pas, affichage des dernières données enregistrées, datées du {date}.", "stale.status": "{src} injoignable · dernières données du {date}", "stale.note": "{src} ne répond pas : dernières données enregistrées, datées du {date}.", "wst.skipped": "pays absents de la Banque mondiale : {c}", "wst.needCode": "Saisissez le code d'un indicateur de la Banque mondiale.",
   "na.wtrend": "Pas de données pour ces pays sur cette période.", "na.wmap": "Pas de données par pays pour cet indicateur.", "wscope.none": "monde",
   "custom.err": "Impossible d'afficher {file} : {msg}. Vérifiez le nom du fichier dans site.json et sa présence dans le dépôt.",
   "site.err": "<strong>site.json contient une erreur</strong> et n'a pas été appliqué : {msg}. Vérifiez les guillemets, les virgules et les accolades (outil gratuit : jsonlint.com).", "ld.loading": "chargement…", "ld.offices": "offices {a} / {b}", "ld.sample": "notices…", "ld.noSample": "échantillon indisponible",
@@ -1120,7 +1123,7 @@ en: {
   "wp.mapNote": "Click a country on the map or in the table to add it to the comparison or remove it. Regional aggregates are excluded from the ranking.",
   "wbtn.csv": "Download CSV", "w.src": "World Bank · WDI", "w.world": "World", "w.code": "Code", "w.source": "Source", "w.updated": "Last World Bank update",
   "wst.loading": "Querying the World Bank…", "wst.ok": "World Bank data loaded", "wst.err": "The World Bank is not responding ({msg}). Try again in a moment.",
-  "wst.badCode": "Indicator not found at the World Bank: {code}", "wst.noData": "No data for this selection.", "wst.needCode": "Enter a World Bank indicator code.",
+  "wst.badCode": "Indicator not found at the World Bank: {code}", "wst.noData": "No data for this selection.", "src.wb": "The World Bank", "stale.banner": "{src} is not responding right now: showing the last saved data, dated {date}.", "stale.part": "World ranking: the source is not responding, showing the last saved data, dated {date}.", "stale.status": "{src} unreachable · last data from {date}", "stale.note": "{src} is not responding: last saved data, dated {date}.", "wst.skipped": "countries not covered by the World Bank: {c}", "wst.needCode": "Enter a World Bank indicator code.",
   "na.wtrend": "No data for these countries over this period.", "na.wmap": "No country data for this indicator.", "wscope.none": "world",
   "custom.err": "Cannot display {file}: {msg}. Check the file name in site.json and that the file is in the repository.",
   "site.err": "<strong>site.json has an error</strong> and was not applied: {msg}. Check quotes, commas and braces (free tool: jsonlint.com).", "ld.loading": "loading…", "ld.offices": "offices {a} / {b}", "ld.sample": "records…", "ld.noSample": "sample unavailable",
@@ -1210,6 +1213,30 @@ const cfg = {
   get worker() { return (store.get("worker") || SITE_CONFIG.workerUrl || "").replace(/\/+$/, ""); },
   get viaWorker() { return store.get("viaWorker", SITE_CONFIG.openAlexViaWorker ? "1" : "0") === "1"; }
 };
+
+/* ---------- last good answers ----------
+   Each source's last successful answers are kept in this browser. When a source stops responding,
+   the site shows them with their date instead of an empty chart. */
+const LG = {
+  read(ns) { try { return JSON.parse(localStorage.getItem("bs_lg_" + ns) || "{}") || {}; } catch { return {}; } },
+  write(ns, c) {
+    for (let i = 0; i < 4; i++) {
+      try { localStorage.setItem("bs_lg_" + ns, JSON.stringify(c)); return; }
+      catch { const ks = Object.keys(c).sort((a, b) => c[a].t - c[b].t); if (!ks.length) return; ks.slice(0, Math.max(1, Math.ceil(ks.length / 2))).forEach(k => delete c[k]); }
+    }
+  },
+  set(ns, key, d, max = 8) {
+    const c = LG.read(ns); c[key] = { t: Date.now(), d };
+    Object.keys(c).sort((a, b) => c[b].t - c[a].t).slice(max).forEach(k => delete c[k]);
+    LG.write(ns, c);
+  },
+  get(ns, key, near) {
+    const c = LG.read(ns); if (c[key]) return c[key];
+    const ks = Object.keys(c).filter(k => !near || near(k)).sort((a, b) => c[b].t - c[a].t);
+    return ks.length ? c[ks[0]] : null;
+  }
+};
+const fmtWhen = ts => new Date(ts).toLocaleString(LANG === "fr" ? "fr-FR" : "en-GB", { dateStyle: "long", timeStyle: "short" });
 
 /* ---------- language ---------- */
 let LANG = (() => {
@@ -1412,7 +1439,10 @@ async function getJSON(url, force) {
   if (r.status === 429) throw Object.assign(new Error(t("err.budget")), { fatal: true });
   if (r.status === 401 || r.status === 403) throw Object.assign(new Error(t("err.key")), { fatal: true });
   if (!r.ok) throw Object.assign(new Error(t("err.http", { src: "OpenAlex", code: r.status })), { fatal: true });
-  const j = await r.json(); CACHE.set(url, { t: Date.now(), j }); return j;
+  const j = await r.json();
+  const st = r.headers.get("X-Fetched-At");
+  if (r.headers.get("X-Stale") && st) { try { Object.defineProperty(j, "__staleAt", { value: Date.parse(st) }); } catch {} }
+  CACHE.set(url, { t: Date.now(), j }); return j;
 }
 function oaBase() { return cfg.viaWorker && cfg.worker ? cfg.worker + "/openalex" : "https://api.openalex.org"; }
 function oaURL(path, params) {
@@ -1455,7 +1485,7 @@ async function fetchLive(s, force) {
     oa("/works", { filter: filter + ",countries_distinct_count:>1", per_page: 1, select: "id" }).then(j => j.meta.count).catch(() => null)
   ]);
   return {
-    mode: "live", range: [s.y1, s.y2], selected: s.countries.slice(), main, cmp, filter,
+    mode: "live", range: [s.y1, s.y2], selected: s.countries.slice(), main, cmp, filter, staleAt: top.__staleAt || null,
     total: top.meta ? top.meta.count : years.reduce((a, g) => a + g.count, 0),
     years: years.map(g => [Number(g.key), g.count]).filter(d => d[0]),
     years2: years2 ? years2.map(g => [Number(g.key), g.count]).filter(d => d[0]) : null,
@@ -2409,6 +2439,7 @@ function state() {
   const c2 = resolveCountryInput($("c2").value);
   return { q: $("q").value.trim(), q2: $("q2").value.trim(), countries: SELECTED.slice(), c2: c2 ? unify(c2) : "", y1, y2, type: $("type").value, oa: $("oaOnly").checked };
 }
+const liveKey = s => JSON.stringify([s.q.toLowerCase(), s.q2.toLowerCase(), s.countries, s.c2, s.y1, s.y2, s.type, s.oa]);
 async function run(force) {
   if (MODE !== "live") return;
   if ($("cInput").value.trim()) pubChips.add();
@@ -2423,18 +2454,32 @@ async function run(force) {
     setProgress(-1); pubBusy(true);
     const [d] = await Promise.allSettled([fetchLive(s, force)]);
     if (my !== inflight || MODE !== "live") return;
+    let stale = null;
     if (d.status === "fulfilled") {
       DATA = d.value; PAT = null;
+      if (DATA.staleAt) stale = { t: DATA.staleAt };
+      else LG.set("live", liveKey(s), DATA, 5);
     } else {
-      if (d.reason && d.reason.fatal) throw d.reason;
-      const ex = demoData(s); DATA = ex.d; PAT = ex.pat; demo = true;
+      // OpenAlex does not answer: the last results saved for this exact search, with their date
+      const hit = LG.get("live", liveKey(s), k => k === liveKey(s));
+      if (hit) { DATA = hit.d; PAT = null; stale = { t: hit.t, msg: d.reason && d.reason.message }; }
+      else {
+        if (d.reason && d.reason.fatal) throw d.reason;
+        const ex = demoData(s); DATA = ex.d; PAT = ex.pat; demo = true;
+      }
     }
-    $("demoBanner").hidden = !demo; $("fileBanner").hidden = true;
+    const bn = $("demoBanner");
+    if (stale) {
+      bn.innerHTML = esc(t("stale.banner", { src: "OpenAlex", date: fmtWhen(stale.t) })) + ` <button class="go" type="button" id="lRetry">${esc(t("poff.retry"))}</button>`;
+      $("lRetry").addEventListener("click", () => run(true));
+    } else if (demo) bn.innerHTML = t("demo.banner");
+    bn.hidden = !demo && !stale; bn.classList.toggle("err", !!stale); $("fileBanner").hidden = true;
     renderAll();
-    $("updated").textContent = now();
-    if (demo) setStatus("demo", t("st.demo"));
+    $("updated").textContent = stale ? fmtWhen(stale.t) : now();
+    if (stale) setStatus("err", t("stale.status", { src: "OpenAlex", date: fmtWhen(stale.t) }));
+    else if (demo) setStatus("demo", t("st.demo"));
     else setStatus("live", t("st.live"));
-    if (!demo) { checkBudget(); refineH(DATA, force); }
+    if (!demo && !stale) { checkBudget(); refineH(DATA, force); }
   } catch (e) { setStatus("err", e.message); }
   finally { if (my === inflight) { $("go").disabled = false; $("grid").classList.remove("loading"); setProgress(null); pubBusy(false); } }
 }
@@ -3115,18 +3160,44 @@ async function wbFetch(path, params) {
   const qs = new URLSearchParams({ format: "json", ...params }).toString();
   const lp = (LANG === "fr" ? "/fr" : "/en") + path + "?" + qs;
   const hit = WCACHE.get(lp); if (hit && Date.now() - hit.t < 3600000) return hit.j;
-  const bases = [WB_API]; if (cfg.worker) bases.push(cfg.worker + "/worldbank");
+  // through the site's proxy first (it caches answers and keeps the last good one), then directly
+  const bases = cfg.worker ? [cfg.worker + "/worldbank", WB_API] : [WB_API];
   let err;
   for (const b of bases) {
     try {
       const r = await fetch(b + lp);
-      if (!r.ok) throw new Error("HTTP " + r.status);
+      if (!r.ok) {
+        // keep the World Bank's own explanation when it gives one
+        let why = ""; try { const t2 = await r.text(); const jj = JSON.parse(t2); why = (jj[0] && jj[0].message && jj[0].message[0] && jj[0].message[0].value) || jj.message || ""; } catch {}
+        throw Object.assign(new Error("HTTP " + r.status + (why ? " · " + why : "")), { status: r.status });
+      }
       const j = await r.json();
       if (Array.isArray(j) && j[0] && j[0].message) throw Object.assign(new Error((j[0].message[0] || {}).value || "API"), { bad: true });
+      const st = r.headers.get("X-Fetched-At");
+      if (r.headers.get("X-Stale") && st) { try { Object.defineProperty(j, "__staleAt", { value: Date.parse(st) }); } catch {} }
       WCACHE.set(lp, { t: Date.now(), j }); return j;
     } catch (e) { err = e; if (e.bad) break; }
   }
   throw err;
+}
+/* Time series, with fallbacks when the World Bank refuses the request (HTTP 400 or "invalid value"):
+   1) all countries at once; 2) period ending last year; 3) one country at a time (unknown countries are skipped). */
+async function wbSeries(code, countries, y1, y2) {
+  const path = c => "/country/" + c + "/indicator/" + encodeURIComponent(code);
+  const all = [...countries, "WLD"].join(";");
+  const one = j => ({ rows: j[1] || [], skipped: [], staleAt: j.__staleAt || null });
+  try { return one(await wbFetch(path(all), { date: y1 + ":" + y2, per_page: "20000" })); }
+  catch (e) { if (!(e.status === 400 || e.bad)) throw e; }
+  const yEnd = Math.max(y1, Math.min(y2, CUR_YEAR - 1));
+  try { return one(await wbFetch(path(all), { date: y1 + ":" + yEnd, per_page: "20000" })); }
+  catch (e) { if (!(e.status === 400 || e.bad)) throw e; }
+  const rows = [], skipped = []; let last;
+  for (const c of [...countries, "WLD"]) {
+    try { rows.push(...((await wbFetch(path(c), { date: y1 + ":" + yEnd, per_page: "2000" }))[1] || [])); }
+    catch (e) { last = e; if (c !== "WLD") skipped.push(c); }
+  }
+  if (!rows.length && last) throw last;
+  return { rows, skipped };
 }
 const COLON = () => LANG === "fr" ? " : " : ": ";
 /* line colors: the third site color (World Bank) first, then the others */
@@ -3137,6 +3208,9 @@ const fmtV = v => {
   if (a >= 1e6) return new Intl.NumberFormat(LOC(), { notation: "compact", maximumFractionDigits: 2 }).format(v);
   return Number(v).toLocaleString(LOC(), { maximumFractionDigits: a < 10 ? 2 : a < 1000 ? 1 : 0 });
 };
+const wbKey = s => [s.code, s.countries.join(","), s.y1, s.y2, LANG].join("|");
+const wbOut = d => ({ ...d, byC: mapsOut(d.byC) });
+const wbIn = d => ({ ...d, byC: mapsIn(d.byC) });
 async function runWb() {
   if (MODE !== "wb") return;
   if ($("wcInput").value.trim()) wbChips.add();
@@ -3147,15 +3221,15 @@ async function runWb() {
   setStatus("", t("wst.loading")); setProgress(-1);
   document.querySelectorAll("#wbView .panel").forEach(p => busy(p, t("ld.loading")));
   try {
-    const ctry = [...s.countries, "WLD"].join(";");
+    // the definition and the world ranking are optional: if they fail, the trend is still shown
     const [meta, series, latest] = await Promise.all([
-      wbFetch("/indicator/" + encodeURIComponent(s.code), {}),
-      wbFetch("/country/" + ctry + "/indicator/" + encodeURIComponent(s.code), { date: s.y1 + ":" + s.y2, per_page: "20000" }),
-      wbFetch("/country/all/indicator/" + encodeURIComponent(s.code), { mrnev: "1", per_page: "500" })
+      wbFetch("/indicator/" + encodeURIComponent(s.code), {}).catch(e => { if (e.bad) throw e; return null; }),
+      wbSeries(s.code, s.countries, s.y1, s.y2),
+      wbFetch("/country/all/indicator/" + encodeURIComponent(s.code), { mrnev: "1", per_page: "500" }).catch(() => null)
     ]);
     if (my !== winflight || MODE !== "wb") return;
     const im = (meta && meta[1] && meta[1][0]) || {};
-    const rows = (series && series[1]) || [], lrows = (latest && latest[1]) || [];
+    const rows = series.rows, lrows = (latest && latest[1]) || [];
     const isW = r => r.countryiso3code === "WLD" || (r.country && r.country.id === "1W");
     const iso = new Set(ISO);
     const byC = new Map();
@@ -3169,13 +3243,27 @@ async function runWb() {
     const ranking = lrows.filter(r => r.value != null && r.country && iso.has(r.country.id))
       .map(r => [r.country.id, Number(r.value), Number(r.date)]).sort((a, b) => b[1] - a[1]);
     WDATA = { s, name: im.name || wbLabel(s.code) || s.code, note: im.sourceNote || "", org: im.sourceOrganization || "",
-      source: im.source && im.source.value || "", updated: (series && series[0] && series[0].lastupdated) || "",
-      byC, ranking, world: world && world.value != null ? [Number(world.value), Number(world.date)] : null };
+      source: im.source && im.source.value || "", updated: (latest && latest[0] && latest[0].lastupdated) || "", skipped: series.skipped,
+      byC, ranking, world: world && world.value != null ? [Number(world.value), Number(world.date)] : null, stale: null };
+    // world ranking unavailable: use the last one saved for this indicator
+    const rkey = s.code + "|" + LANG;
+    if (latest && ranking.length && !latest.__staleAt) LG.set("wbr", rkey, { ranking, world: WDATA.world, updated: WDATA.updated }, 20);
+    else if (!ranking.length) { const hr = LG.get("wbr", rkey); if (hr) { Object.assign(WDATA, { ranking: hr.d.ranking, world: hr.d.world, updated: hr.d.updated }); WDATA.stale = { t: hr.t, part: true }; } }
+    if (series.staleAt) WDATA.stale = { t: series.staleAt };
+    else if (byC.size) LG.set("wb", wbKey(s), wbOut(WDATA), 12);
     renderWb();
-    setStatus("live", t("wst.ok")); $("updated").textContent = now();
+    if (WDATA.stale && !WDATA.stale.part) setStatus("err", t("stale.status", { src: t("src.wb"), date: fmtWhen(WDATA.stale.t) }));
+    else setStatus(series.skipped.length ? "demo" : "live", t("wst.ok") + (series.skipped.length ? " · " + t("wst.skipped", { c: series.skipped.map(cname).join(", ") }) : ""));
+    $("updated").textContent = now();
   } catch (e) {
     if (my !== winflight) return;
-    setStatus("err", e.bad ? t("wst.badCode", { code: s.code }) : t("wst.err", { msg: e.message }));
+    // the World Bank does not answer: show the last data saved for this indicator, with its date
+    const hit = !e.bad && LG.get("wb", wbKey(s), k => k.startsWith(s.code + "|"));
+    if (hit) {
+      WDATA = wbIn(hit.d); WDATA.stale = { t: hit.t, msg: e.message };
+      renderWb();
+      setStatus("err", t("stale.status", { src: t("src.wb"), date: fmtWhen(hit.t) }));
+    } else setStatus("err", e.bad ? t("wst.badCode", { code: s.code }) : t("wst.err", { msg: e.message }));
   } finally {
     if (my === winflight) { setProgress(null); document.querySelectorAll("#wbView .panel").forEach(p => busy(p, null)); }
   }
@@ -3184,6 +3272,11 @@ function renderWb() {
   const d = WDATA; if (!d) return;
   const th = T(), s = d.s, ax = axisCommon(th);
   const cn = c => c === "WLD" ? t("w.world") : cname(c);
+  const sb = $("wStale");
+  if (d.stale) {
+    sb.innerHTML = esc(t(d.stale.part ? "stale.part" : "stale.banner", { src: t("src.wb"), date: fmtWhen(d.stale.t) })) + ` <button class="go" type="button" id="wRetry">${esc(t("poff.retry"))}</button>`;
+    sb.hidden = false; $("wRetry").addEventListener("click", () => runWb());
+  } else sb.hidden = true;
   $("wscope").innerHTML = `<b>${esc(d.name)}</b> · ${esc(s.countries.length ? s.countries.map(cname).join(", ") : t("wscope.none"))} · ${s.y1}–${s.y2}`;
   // KPIs: first selected country
   const c0 = s.countries[0], m0 = c0 && d.byC.get(c0);
@@ -3394,6 +3487,8 @@ async function renderFileInto(el, file, stillWanted) {
    <div class="wb-chart" data-indicator="GB.XPD.RSDV.GD.ZS" data-countries="MA,CA,FR,US" data-from="2000" data-per="million"></div>
    data-countries, data-from and data-per are optional; data-per="million" divides by population (per million people). */
 let WBC = [];
+const mapsOut = byC => [...byC].map(([k, m]) => [k, [...m]]);
+const mapsIn = arr => new Map((arr || []).map(([k, m]) => [k, new Map(m)]));
 async function renderWbBlocks(root, stillWanted) {
   WBC.forEach(c => { try { c.dispose(); } catch {} }); WBC = [];
   const blocks = [...root.querySelectorAll(".wb-chart[data-indicator]")];
@@ -3402,12 +3497,15 @@ async function renderWbBlocks(root, stillWanted) {
     const code = el.dataset.indicator.trim().toUpperCase();
     const ctry = (el.dataset.countries || "MA,CA,FR,US").split(/[,;\s]+/).map(x => x.trim().toUpperCase()).filter(x => /^[A-Z]{2}$/.test(x));
     const from = Math.max(1960, parseInt(el.dataset.from, 10) || 2000), per = el.dataset.per === "million";
+    const bkey = [code, ctry.join(","), from, per ? "pm" : "", LANG].join("|");
     el.innerHTML = `<div class="wbc-chart"><p class="note">${esc(t("ld.loading"))}</p></div><p class="note wbc-src"></p>`;
+    let data, stale = null;
     try {
       const q = [...ctry, "WLD"].join(";"), params = { date: from + ":" + CUR_YEAR, per_page: "20000" };
       const [ser, pop] = await Promise.all([
-        wbFetch("/country/" + q + "/indicator/" + encodeURIComponent(code), params),
-        per ? wbFetch("/country/" + q + "/indicator/SP.POP.TOTL", params) : Promise.resolve(null)
+        wbFetch("/country/" + q + "/indicator/" + encodeURIComponent(code), params)
+          .catch(e => { if (e.status === 400) return wbFetch("/country/" + q + "/indicator/" + encodeURIComponent(code), { ...params, date: from + ":" + (CUR_YEAR - 1) }); throw e; }),
+        per ? wbFetch("/country/" + q + "/indicator/SP.POP.TOTL", params).catch(() => wbFetch("/country/" + q + "/indicator/SP.POP.TOTL", { ...params, date: from + ":" + (CUR_YEAR - 1) })) : Promise.resolve(null)
       ]);
       if (stillWanted && !stillWanted()) return;
       const key = r => (r.countryiso3code === "WLD" || (r.country && r.country.id === "1W")) ? "WLD" : r.country && r.country.id;
@@ -3421,29 +3519,36 @@ async function renderWbBlocks(root, stillWanted) {
         if (per) { const pp = P.get(k + r.date); if (!pp) return; v = v / pp * 1e6; }
         if (!byC.has(k)) byC.set(k, new Map()); byC.get(k).set(Number(r.date), v);
       });
-      const noWorld = /^(no|non|false|0)$/i.test(el.dataset.world || "");
-      const keys = [...ctry.filter(c => byC.has(c)), ...(byC.has("WLD") && !noWorld ? ["WLD"] : [])];
-      const box = el.querySelector(".wbc-chart");
-      el.querySelector(".wbc-src").innerHTML = `${esc(t("w.src"))} · <a href="https://data.worldbank.org/indicator/${encodeURIComponent(code)}" target="_blank" rel="noopener">${esc(name || code)}</a>${per ? " · " + esc(t("wbc.perMillion")) : ""}`;
-      if (!keys.length || !window.echarts) { box.innerHTML = `<div class="na">${esc(t("na.wtrend"))}</div>`; continue; }
-      const ys = [...new Set(keys.flatMap(k => [...byC.get(k).keys()]))].sort((a, b) => a - b);
-      const yv = []; for (let y = ys[0]; y <= ys[ys.length - 1]; y++) yv.push(y);
-      box.innerHTML = ""; box.style.height = "320px";
-      const th = T(), ax = axisCommon(th), pal = WB_PAL(th);
-      const c = echarts.init(box, null, { renderer: "canvas" }); WBC.push(c);
-      c.setOption({
-        animationDuration: 500, color: pal, grid: { left: 8, right: 16, top: 36, bottom: 8, containLabel: true },
-        legend: { top: 0, left: 0, textStyle: { color: th.ink, fontSize: 12 }, icon: "roundRect", itemWidth: 12, itemHeight: 4 },
-        tooltip: { trigger: "axis", ...tip(th), valueFormatter: v => fmtV(v) },
-        xAxis: { type: "category", data: yv, boundaryGap: false, ...ax, splitLine: { show: false } },
-        yAxis: { type: "value", scale: true, ...ax, axisLine: { show: false }, axisLabel: { ...ax.axisLabel, formatter: v => fmtV(v) } },
-        series: keys.map((k, i) => ({ name: k === "WLD" ? t("w.world") : cname(k), type: "line", connectNulls: true, symbolSize: 5, showSymbol: yv.length < 30,
-          data: yv.map(y => byC.get(k).has(y) ? byC.get(k).get(y) : null),
-          ...(k === "WLD" ? { lineStyle: { type: "dashed", width: 1.5, color: th.muted }, itemStyle: { color: th.muted } } : { lineStyle: { width: 2.2 }, itemStyle: { color: pal[i % pal.length] } }) }))
-      });
+      data = { name, byC };
+      if (ser && ser.__staleAt) stale = { t: ser.__staleAt };
+      else if (byC.size) LG.set("wbc", bkey, { name, byC: mapsOut(byC) }, 60);
     } catch (e) {
-      el.querySelector(".wbc-chart").innerHTML = `<div class="na">${esc(e.bad ? t("wst.badCode", { code }) : t("wst.err", { msg: e.message }))}</div>`;
+      const hit = LG.get("wbc", bkey);
+      if (!hit) { el.querySelector(".wbc-chart").innerHTML = `<div class="na">${esc(e.bad ? t("wst.badCode", { code }) : t("wst.err", { msg: e.message }))}</div>`; continue; }
+      data = { name: hit.d.name, byC: mapsIn(hit.d.byC) }; stale = { t: hit.t };
     }
+    const { name, byC } = data;
+    const noWorld = /^(no|non|false|0)$/i.test(el.dataset.world || "");
+    const keys = [...ctry.filter(c => byC.has(c)), ...(byC.has("WLD") && !noWorld ? ["WLD"] : [])];
+    const box = el.querySelector(".wbc-chart");
+    el.querySelector(".wbc-src").innerHTML = `${esc(t("w.src"))} · <a href="https://data.worldbank.org/indicator/${encodeURIComponent(code)}" target="_blank" rel="noopener">${esc(name || code)}</a>${per ? " · " + esc(t("wbc.perMillion")) : ""}`
+      + (stale ? `<br><span class="stale">${esc(t("stale.note", { src: t("src.wb"), date: fmtWhen(stale.t) }))}</span>` : "");
+    if (!keys.length || !window.echarts) { box.innerHTML = `<div class="na">${esc(t("na.wtrend"))}</div>`; continue; }
+    const ys = [...new Set(keys.flatMap(k => [...byC.get(k).keys()]))].sort((a, b) => a - b);
+    const yv = []; for (let y = ys[0]; y <= ys[ys.length - 1]; y++) yv.push(y);
+    box.innerHTML = ""; box.style.height = "320px";
+    const th = T(), ax = axisCommon(th), pal = WB_PAL(th);
+    const c = echarts.init(box, null, { renderer: "canvas" }); WBC.push(c);
+    c.setOption({
+      animationDuration: 500, color: pal, grid: { left: 8, right: 16, top: 36, bottom: 8, containLabel: true },
+      legend: { top: 0, left: 0, textStyle: { color: th.ink, fontSize: 12 }, icon: "roundRect", itemWidth: 12, itemHeight: 4 },
+      tooltip: { trigger: "axis", ...tip(th), valueFormatter: v => fmtV(v) },
+      xAxis: { type: "category", data: yv, boundaryGap: false, ...ax, splitLine: { show: false } },
+      yAxis: { type: "value", scale: true, ...ax, axisLine: { show: false }, axisLabel: { ...ax.axisLabel, formatter: v => fmtV(v) } },
+      series: keys.map((k, i) => ({ name: k === "WLD" ? t("w.world") : cname(k), type: "line", connectNulls: true, symbolSize: 5, showSymbol: yv.length < 30,
+        data: yv.map(y => byC.get(k).has(y) ? byC.get(k).get(y) : null),
+        ...(k === "WLD" ? { lineStyle: { type: "dashed", width: 1.5, color: th.muted }, itemStyle: { color: th.muted } } : { lineStyle: { width: 2.2 }, itemStyle: { color: pal[i % pal.length] } }) }))
+    });
   }
 }
 window.addEventListener("resize", () => WBC.forEach(c => c.resize()));
