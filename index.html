@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>Intelligentrix · Plateforme de bibliométrie et d’analyse des brevets</title>
-<meta name="claude:viewport-fit-sides" content="cover">
 <meta name="description" content="Tableau de bord bibliométrique en direct : publications, citations, pays, institutions et brevets à partir d'API ouvertes.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -804,7 +803,7 @@ fr: {
   "set.saved": "Enregistré dans ce navigateur.", "set.savedKeys": "Enregistré dans ce navigateur · clé Scopus : {s} · clé Web of Science : {w}. Cliquez « Tester les connexions » pour vérifier.", "set.present": "présente", "set.absent": "absente", "set.needUrl": "Indiquez d'abord l'URL du proxy.", "set.testing": "Test…",
   "set.ok": "Proxy joignable · OEB : {epo} · Lens : {lens} · OpenAlex : {oa}", "set.yes": "oui", "set.no": "non", "set.keyYes": "clé présente", "set.keyNo": "sans clé",
   "set.ko": "Proxy injoignable : vérifiez l'URL et la variable ALLOWED_ORIGIN du Worker.",
-  "demo.banner": "<strong>Données d'exemple, fictives.</strong> Les API n'ont pas répondu (dans l'aperçu claude.ai, les appels réseau externes sont bloqués). Une fois le site publié, chaque recherche interroge OpenAlex en direct.",
+  "demo.banner": "<strong>Données d'exemple, fictives.</strong> OpenAlex n'a pas répondu et aucune donnée n'a encore été enregistrée pour cette recherche. Réessayez dans un instant : chaque recherche interroge OpenAlex en direct.",
   "pdemo.banner": "<strong>Brevets : données d'exemple, fictives.</strong> Aucune base brevets n'est interrogeable sans clé. Dès que le proxy gratuit est déployé (voir ci-dessous), cet onglet affiche les données réelles de l'OEB (Espacenet) ou de Lens.org.",
   "setup.title": "Brancher les vraies données brevets (gratuit)",
   "setup.list": "<ol><li>Créer un compte développeur sur developers.epo.org (validation manuelle par l'OEB), puis une application pour obtenir la <i>Consumer Key</i> et le <i>Consumer Secret</i>.</li><li>Créer un Worker sur Cloudflare (offre gratuite), y coller <code>worker.js</code>, puis ajouter les secrets <code>EPO_KEY</code> et <code>EPO_SECRET</code> (et <code>LENS_TOKEN</code> si vous obtenez un accès Lens).</li><li>Coller l'URL du Worker dans « Sources &amp; clés API » (ou dans <code>SITE_CONFIG</code> pour tous les visiteurs).</li></ol>",
@@ -1010,7 +1009,7 @@ en: {
   "set.saved": "Saved in this browser.", "set.savedKeys": "Saved in this browser · Scopus key: {s} · Web of Science key: {w}. Click “Test connections” to check.", "set.present": "set", "set.absent": "not set", "set.needUrl": "Enter the proxy URL first.", "set.testing": "Testing…",
   "set.ok": "Proxy reachable · EPO: {epo} · Lens: {lens} · OpenAlex: {oa}", "set.yes": "yes", "set.no": "no", "set.keyYes": "key set", "set.keyNo": "no key",
   "set.ko": "Proxy unreachable: check the URL and the Worker's ALLOWED_ORIGIN variable.",
-  "demo.banner": "<strong>Example data, fictitious.</strong> The APIs did not respond (the claude.ai preview blocks external network calls). Once the site is published, every search queries OpenAlex live.",
+  "demo.banner": "<strong>Example data, fictitious.</strong> OpenAlex did not respond and no data has been saved yet for this search. Try again in a moment: every search queries OpenAlex live.",
   "pdemo.banner": "<strong>Patents: example data, fictitious.</strong> No patent database can be queried without a key. As soon as the free proxy is deployed (see below), this tab shows real data from the EPO (Espacenet) or Lens.org.",
   "setup.title": "Connect real patent data (free)",
   "setup.list": "<ol><li>Create a developer account on developers.epo.org (manually approved by the EPO), then an app to get the <i>Consumer Key</i> and <i>Consumer Secret</i>.</li><li>Create a Cloudflare Worker (free plan), paste <code>worker.js</code>, then add the secrets <code>EPO_KEY</code> and <code>EPO_SECRET</code> (and <code>LENS_TOKEN</code> if you get Lens access).</li><li>Paste the Worker URL into “Sources &amp; API keys” (or into <code>SITE_CONFIG</code> for all visitors).</li></ol>",
@@ -2179,12 +2178,9 @@ function crossrefRow(it) {
   };
 }
 
-let dlNS; // "downloads" capability when viewed inside claude.ai; otherwise a regular browser download
-if (window.claude && typeof window.claude.use === "function") window.claude.use("downloads").then(ns => { dlNS = ns; }).catch(() => { dlNS = null; });
 $("btnDownload").addEventListener("click", async () => {
   if (!MERGE) return;
   const data = "\uFEFF" + mergedCSV(), filename = "intelligentrix_corpus_fusionne.csv";
-  if (dlNS) { try { await dlNS.save({ filename, data: new Blob([data], { type: "text/csv" }) }); } catch {} return; }
   try {
     const blob = new Blob([data], { type: "text/csv;charset=utf-8" });
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = filename;
@@ -3392,7 +3388,6 @@ function wToggle(cc) {
 }
 async function saveCSV(filename, text) {
   const data = "﻿" + text;
-  if (dlNS) { try { await dlNS.save({ filename, data: new Blob([data], { type: "text/csv" }) }); } catch {} return; }
   try {
     const blob = new Blob([data], { type: "text/csv;charset=utf-8" });
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = filename;
