@@ -528,12 +528,13 @@ footer p{max-width:90ch;margin:.3em 0}
   <div id="pubView">
     <p class="scope" id="scope"></p>
 
-    <section class="kpis k5" data-i18n-aria="aria.kpis">
+    <section class="kpis k6" data-i18n-aria="aria.kpis">
       <div class="kpi"><span class="k" data-i18n="k.pubs"></span><span class="v" id="kPubs">—</span><span class="s" id="kPubsS"></span></div>
       <div class="kpi"><span class="k" data-i18n="k.h"></span><span class="v" id="kH">—</span><span class="s" id="kHS"></span></div>
       <div class="kpi"><span class="k" data-i18n="k.cit"></span><span class="v" id="kCit">—</span><span class="s" id="kCitS"></span></div>
       <div class="kpi"><span class="k" data-i18n="k.oa"></span><span class="v" id="kOA">—</span><span class="s" data-i18n="k.oaS"></span></div>
       <div class="kpi" id="kRankBox"><span class="k" id="kRankK"></span><span class="v" id="kRank">—</span><span class="s" id="kRankS"></span></div>
+      <div class="kpi"><span class="k" data-i18n="k.cpp"></span><span class="v" id="kCpp">—</span><span class="s" id="kCppS"></span></div>
     </section>
 
     <div class="grid" id="grid">
@@ -555,7 +556,7 @@ footer p{max-width:90ch;margin:.3em 0}
       </section>
 
       <section class="panel wide" id="metricsPanel" hidden>
-        <div class="ph"><h2 data-i18n="p.metrics"></h2><span class="src" data-i18n="p.metricsSrc"></span></div>
+        <div class="ph"><h2 data-i18n="p.metrics"></h2><span class="src" id="metricsSrc"></span></div>
         <div class="metrics" id="metrics"></div>
       </section>
 
@@ -746,8 +747,8 @@ footer p{max-width:90ch;margin:.3em 0}
   </div>
   <div id="aboutView" hidden>
     <article class="about">
-      <h2 data-i18n="about.title"></h2>
-      <p class="lead" data-i18n="about.lead"></p>
+      <h2 id="aboutTitle" data-i18n="about.title"></h2>
+      <p class="lead" id="aboutLead" data-i18n="about.lead"></p>
       <nav class="toc" id="aboutToc" data-i18n-aria="about.toc"></nav>
       <div id="aboutBody" data-i18n-html="about.body"></div>
       <div class="custom" id="aboutExtra" hidden></div>
@@ -808,7 +809,7 @@ fr: {
   "setup.title": "Brancher les vraies données brevets (gratuit)",
   "setup.list": "<ol><li>Créer un compte développeur sur developers.epo.org (validation manuelle par l'OEB), puis une application pour obtenir la <i>Consumer Key</i> et le <i>Consumer Secret</i>.</li><li>Créer un Worker sur Cloudflare (offre gratuite), y coller <code>worker.js</code>, puis ajouter les secrets <code>EPO_KEY</code> et <code>EPO_SECRET</code> (et <code>LENS_TOKEN</code> si vous obtenez un accès Lens).</li><li>Coller l'URL du Worker dans « Sources &amp; clés API » (ou dans <code>SITE_CONFIG</code> pour tous les visiteurs).</li></ol>",
   "setup.note": "L'OEB donne les comptages par année, par office et par code CPC/CIB. Lens.org ajoute les pays des déposants, les déposants, le statut juridique et les brevets les plus cités.",
-  "k.pubs": "Publications", "k.h": "Indice h", "k.cit": "Citations", "k.oa": "Accès ouvert", "k.oaS": "part des publications", "k.pat": "Brevets ›",
+  "k.pubs": "Publications", "k.h": "Indice h", "k.cit": "Citations", "k.cpp": "Citations / publication", "k.cppAll": "moyenne sur toutes les publications", "k.cppEst": "moyenne estimée sur {n} publications tirées au hasard", "k.cppWait": "calcul en cours…", "k.oa": "Accès ouvert", "k.oaS": "part des publications", "k.pat": "Brevets ›",
   "k.hCorpus": "du corpus", "k.hAll": "sur tout le corpus", "k.hWait": "calcul exact en cours…", "k.g": "indice g : {g}", "k.citTop": "des 200 plus citées", "k.citAll": "total du corpus", "k.citFile": "total des fichiers",
   "k.rank": "Rang mondial", "k.rankShare": "{p} des publications mondiales", "k.rankOf": "sur {n} pays", "k.worldShare": "Part mondiale",
   "k.worldShareS": "des pays sélectionnés réunis", "k.countries": "Pays", "k.countriesS": "avec au moins 1 auteur", "k.noAffil": "affiliations absentes",
@@ -829,7 +830,7 @@ fr: {
   "file.noAffil": " Pas de colonne d'affiliations : la carte des pays n'est pas disponible.", "file.private": " Les fichiers restent dans votre navigateur.",
   "file.errTitle": "Colonne « Title » introuvable dans {name} : vérifiez qu'il s'agit d'un export Publish or Perish, Scopus ou Web of Science.",
   "file.errEmpty": "{name} ne contient aucune ligne lisible.", "file.generic": "format générique",
-  "p.metrics": "Indicateurs de citation", "p.metricsSrc": "calculés sur tout le corpus importé",
+  "p.metrics": "Indicateurs de citation", "p.metricsSrc": "calculés sur tout le corpus importé", "p.metricsSrcLive": "indice g calculé sur les {n} publications les plus citées", "mt.gCapped": "valeur minimale : le calcul exact demanderait plus que les {n} publications les plus citées", "mt.mLive": "h / {n} ans depuis le début de la période ({y})",
   "p.years": "Production annuelle", "p.yearsNote": "La dernière année est en cours : elle est affichée en clair et reste partielle.",
   "map.dist": "Répartition mondiale", "map.world": "Classement mondial", "map.partners": "Pays partenaires de {names}",
   "map.srcLive": "OpenAlex · pays des affiliations", "map.srcFile": "Fichiers importés · pays des affiliations",
@@ -971,8 +972,8 @@ fr: {
    + "<section id=\"ab-wb\"><h3>Banque mondiale</h3><p>L'onglet <b>Banque mondiale</b> interroge en direct l'API gratuite de la Banque mondiale (World Development Indicators). Choisissez un indicateur (dépenses de R-D, chercheurs, brevets, articles scientifiques, exportations de haute technologie, PIB, éducation, énergie, eau…) ou saisissez n'importe quel code de la Banque mondiale, puis les pays à comparer et la période. L'onglet affiche l'évolution par pays avec la valeur mondiale en pointillés, une carte et un classement mondial sur la dernière valeur disponible de chaque pays, et la définition officielle de l'indicateur. Les données se téléchargent en CSV.</p></section>"
    + "<section id=\"ab-import\"><h3>Importer et fusionner</h3><p>Déposez un ou plusieurs exports ; le site reconnaît la base de chaque fichier. Les doublons sont repérés par DOI, puis par titre, année et premier auteur, puis par titre et année quand une notice n'a pas de DOI. Les titres seulement proches sont listés pour vérification, jamais fusionnés d'office. Le corpus fusionné se télécharge en CSV. <b>Vos fichiers ne quittent pas votre navigateur.</b></p><ul><li><b>Web of Science</b> : Export → « Tab delimited file », contenu « Full Record ».</li><li><b>Scopus</b> : tout sélectionner, Exporter → CSV avec les informations de citation, bibliographiques, résumé et mots-clés.</li><li><b>Publish or Perish</b> : enregistrer les résultats en CSV (Google Scholar, Crossref, OpenAlex…).</li></ul><p><b>Scopus et Web of Science par API</b> : avec sa propre clé (champ dans « Sources & clés API »), chacun peut interroger Scopus ou Web of Science Starter depuis l'onglet Importer et fusionner ; les résultats sont fusionnés avec les fichiers importés. Les clés restent dans le navigateur ; Web of Science transite par le proxy du site, sans enregistrement. Rien n'est stocké ni republié par le site, et chacun reste responsable de l'usage de sa clé selon la licence de son établissement.</p></section>"
    + "<section id=\"ab-net\"><h3>Lire les réseaux</h3><p>Les réseaux reprennent les principes de VOSviewer. Chaque <b>nœud</b> est un mot-clé, un pays, un auteur, une institution, un code ou un déposant ; sa taille dépend du nombre de documents. Un <b>lien</b> relie deux éléments qui apparaissent dans les mêmes documents ; son épaisseur dépend du nombre de documents communs. Les <b>couleurs</b> montrent soit des groupes d'éléments fortement liés (méthode de Louvain), soit l'<b>année moyenne</b> des documents, pour repérer les thèmes émergents.</p></section>"
-   + "<section id=\"ab-ind\"><h3>Définitions des indicateurs</h3><dl><dt>Indice h</dt><dd>h publications citées au moins h fois chacune.</dd><dt>Indice g</dt><dd>les g publications les plus citées totalisent au moins g² citations.</dd><dt>Quotient m</dt><dd>indice h divisé par le nombre d'années depuis la première publication.</dd><dt>Comptage entier</dt><dd>une publication compte pour chacun des pays de ses auteurs ; la somme des pays dépasse donc le total.</dd><dt>Part mondiale</dt><dd>publications du pays divisées par les publications mondiales dont le pays est connu.</dd><dt>Accès ouvert</dt><dd>or (revue ouverte), hybride (article ouvert dans une revue payante), vert (archive ouverte), bronze (lecture gratuite sans licence), diamant (sans frais de lecture ni de publication).</dd><dt>Famille de brevets</dt><dd>ensemble des publications d'une même invention dans différents offices.</dd></dl></section>"
-   + "<section id=\"ab-src\"><h3>Sources et limites</h3><ul><li><b>OpenAlex</b> (licence CC0) : couverture large, mais affiliations et pays parfois manquants ; une clé gratuite augmente le volume de requêtes.</li><li><b>Brevets</b> : OEB Open Patent Services (gratuit après validation du compte) et Lens.org, selon leurs conditions d'utilisation. Seuls des comptages agrégés sont affichés.</li><li><b>Scopus et Web of Science</b> : pas d'API ouverte ; leurs données entrent par vos exports, analysés localement.</li></ul></section>",
+   + "<section id=\"ab-ind\"><h3>Définitions des indicateurs</h3><dl><dt>Indice h</dt><dd>h publications citées au moins h fois chacune.</dd><dt>Indice g</dt><dd>les g publications les plus citées totalisent au moins g² citations.</dd><dt>Quotient m</dt><dd>indice h divisé par le nombre d'années depuis la première publication (ici : depuis le début de la période choisie).</dd><dt>Citations par publication</dt><dd>nombre moyen de citations reçues par publication. En Recherche en direct, quand le corpus dépasse 200 publications, la moyenne est estimée sur 1 000 publications tirées au hasard (signe ≈).</dd><dt>Où les voir</dt><dd>l'indice h et les citations par publication figurent dans les chiffres clés ; l'indice g et le quotient m sont calculés dans l'onglet Importer et fusionner (panneau « Indicateurs de citation »).</dd><dt>Comptage entier</dt><dd>une publication compte pour chacun des pays de ses auteurs ; la somme des pays dépasse donc le total.</dd><dt>Part mondiale</dt><dd>publications du pays divisées par les publications mondiales dont le pays est connu.</dd><dt>Accès ouvert</dt><dd>or (revue ouverte), hybride (article ouvert dans une revue payante), vert (archive ouverte), bronze (lecture gratuite sans licence), diamant (sans frais de lecture ni de publication).</dd><dt>Famille de brevets</dt><dd>ensemble des publications d'une même invention dans différents offices.</dd></dl></section>"
+   + "<section id=\"ab-src\"><h3>Sources et limites</h3><ul><li><b>OpenAlex</b> (licence CC0) : couverture large, mais affiliations et pays parfois manquants ; une clé gratuite augmente le volume de requêtes.</li><li><b>Brevets</b> : OEB Open Patent Services (gratuit après validation du compte) et Lens.org, selon leurs conditions d'utilisation. Seuls des comptages agrégés sont affichés.</li><li><b>Scopus et Web of Science</b> : par vos exports (analysés localement) ou par API avec votre propre clé, dans l'onglet Importer et fusionner. <b>Crossref</b> (libre) y est aussi interrogeable.</li></ul></section>",
   "about.author": "Conception", "about.contact": "Contact",
   "foot.data": "Données bibliographiques : <a href=\"https://openalex.org\" target=\"_blank\" rel=\"noopener\">OpenAlex</a> (licence CC0). Brevets : <a href=\"https://www.epo.org/en/searching-for-patents/data/web-services/ops\" target=\"_blank\" rel=\"noopener\">OEB Open Patent Services</a> et <a href=\"https://www.lens.org\" target=\"_blank\" rel=\"noopener\">The Lens</a>, selon leurs conditions d'utilisation. Imports : <a href=\"https://harzing.com/resources/publish-or-perish\" target=\"_blank\" rel=\"noopener\">Publish or Perish</a>, Scopus, Web of Science.",
   "foot.method": "Méthode : comptages par regroupement côté API (group_by), comptage entier par pays (une publication compte pour chacun des pays de ses auteurs)."
@@ -1014,7 +1015,7 @@ en: {
   "setup.title": "Connect real patent data (free)",
   "setup.list": "<ol><li>Create a developer account on developers.epo.org (manually approved by the EPO), then an app to get the <i>Consumer Key</i> and <i>Consumer Secret</i>.</li><li>Create a Cloudflare Worker (free plan), paste <code>worker.js</code>, then add the secrets <code>EPO_KEY</code> and <code>EPO_SECRET</code> (and <code>LENS_TOKEN</code> if you get Lens access).</li><li>Paste the Worker URL into “Sources &amp; API keys” (or into <code>SITE_CONFIG</code> for all visitors).</li></ol>",
   "setup.note": "The EPO provides counts by year, office and CPC/IPC code. Lens.org adds applicant countries, applicants, legal status and the most cited patents.",
-  "k.pubs": "Publications", "k.h": "h-index", "k.cit": "Citations", "k.oa": "Open access", "k.oaS": "share of publications", "k.pat": "Patents ›",
+  "k.pubs": "Publications", "k.h": "h-index", "k.cit": "Citations", "k.cpp": "Citations / publication", "k.cppAll": "average over all publications", "k.cppEst": "average estimated on {n} randomly drawn publications", "k.cppWait": "computing…", "k.oa": "Open access", "k.oaS": "share of publications", "k.pat": "Patents ›",
   "k.hCorpus": "of the corpus", "k.hAll": "of the whole corpus", "k.hWait": "computing the exact value…", "k.g": "g-index: {g}", "k.citTop": "of the 200 most cited", "k.citAll": "corpus total", "k.citFile": "total of the files",
   "k.rank": "World rank", "k.rankShare": "{p} of world publications", "k.rankOf": "out of {n} countries", "k.worldShare": "World share",
   "k.worldShareS": "selected countries combined", "k.countries": "Countries", "k.countriesS": "with at least 1 author", "k.noAffil": "no affiliations",
@@ -1035,7 +1036,7 @@ en: {
   "file.noAffil": " No affiliation column: the country map is not available.", "file.private": " Files stay in your browser.",
   "file.errTitle": "No “Title” column in {name}: check that it is a Publish or Perish, Scopus or Web of Science export.",
   "file.errEmpty": "{name} contains no readable rows.", "file.generic": "generic format",
-  "p.metrics": "Citation indicators", "p.metricsSrc": "computed on the whole imported corpus",
+  "p.metrics": "Citation indicators", "p.metricsSrc": "computed on the whole imported corpus", "p.metricsSrcLive": "g-index computed on the {n} most cited publications", "mt.gCapped": "minimum value: the exact figure would need more than the {n} most cited publications", "mt.mLive": "h / {n} years since the start of the period ({y})",
   "p.years": "Annual output", "p.yearsNote": "The last year is still in progress: it is shown lighter and is incomplete.",
   "map.dist": "Worldwide distribution", "map.world": "World ranking", "map.partners": "Partner countries of {names}",
   "map.srcLive": "OpenAlex · affiliation countries", "map.srcFile": "Imported files · affiliation countries",
@@ -1177,8 +1178,8 @@ en: {
    + "<section id=\"ab-wb\"><h3>World Bank</h3><p>The <b>World Bank</b> tab queries the free World Bank API (World Development Indicators) live. Choose an indicator (R&amp;D spending, researchers, patents, scientific articles, high-technology exports, GDP, education, energy, water…) or enter any World Bank code, then the countries to compare and the period. The tab shows the trend by country with the world value as a dotted line, a map and a world ranking based on each country's latest available value, and the official definition of the indicator. Data can be downloaded as CSV.</p></section>"
    + "<section id=\"ab-import\"><h3>Import and merge</h3><p>Drop one or more exports; the site recognizes each file's database. Duplicates are matched by DOI, then by title, year and first author, then by title and year when a record has no DOI. Titles that are only similar are listed for review, never merged automatically. The merged corpus can be downloaded as CSV. <b>Your files never leave your browser.</b></p><ul><li><b>Web of Science</b>: Export → “Tab delimited file”, record content “Full Record”.</li><li><b>Scopus</b>: select all, Export → CSV with citation, bibliographical, abstract and keyword information.</li><li><b>Publish or Perish</b>: save the results as CSV (Google Scholar, Crossref, OpenAlex…).</li></ul><p><b>Scopus and Web of Science via API</b>: with their own key (field in “Sources & API keys”), anyone can query Scopus or Web of Science Starter from the Import and merge tab; results are merged with the imported files. Keys stay in the browser; Web of Science goes through the site's proxy, without being stored. Nothing is stored or republished by the site, and each user remains responsible for using their key under their institution's license.</p></section>"
    + "<section id=\"ab-net\"><h3>Reading the networks</h3><p>The networks follow VOSviewer's principles. Each <b>node</b> is a keyword, country, author, institution, code or applicant; its size reflects the number of documents. A <b>link</b> joins two items that appear in the same documents; its width reflects the number of shared documents. <b>Colors</b> show either clusters of closely linked items (Louvain method) or the <b>average year</b> of the documents, to spot emerging topics.</p></section>"
-   + "<section id=\"ab-ind\"><h3>Indicator definitions</h3><dl><dt>h-index</dt><dd>h publications each cited at least h times.</dd><dt>g-index</dt><dd>the g most cited publications total at least g² citations.</dd><dt>m-quotient</dt><dd>h-index divided by the number of years since the first publication.</dd><dt>Full counting</dt><dd>a publication counts once for each of its authors' countries, so country totals exceed the overall total.</dd><dt>World share</dt><dd>the country's publications divided by world publications with a known country.</dd><dt>Open access</dt><dd>gold (open journal), hybrid (open article in a subscription journal), green (repository copy), bronze (free to read without a license), diamond (no reading or publishing fees).</dd><dt>Patent family</dt><dd>all publications of the same invention across patent offices.</dd></dl></section>"
-   + "<section id=\"ab-src\"><h3>Sources and limits</h3><ul><li><b>OpenAlex</b> (CC0 license): broad coverage, but affiliations and countries are sometimes missing; a free key raises the request volume.</li><li><b>Patents</b>: EPO Open Patent Services (free once the account is approved) and Lens.org, under their terms of use. Only aggregated counts are shown.</li><li><b>Scopus and Web of Science</b>: no open API; their data comes in through your exports, analyzed locally.</li></ul></section>",
+   + "<section id=\"ab-ind\"><h3>Indicator definitions</h3><dl><dt>h-index</dt><dd>h publications each cited at least h times.</dd><dt>g-index</dt><dd>the g most cited publications total at least g² citations.</dd><dt>m-quotient</dt><dd>h-index divided by the number of years since the first publication (here: since the start of the selected period).</dd><dt>Citations per publication</dt><dd>average number of citations received per publication. In Live search, when the corpus exceeds 200 publications, the average is estimated on 1,000 randomly drawn publications (sign ≈).</dd><dt>Where to see them</dt><dd>the h-index and citations per publication are among the key figures; the g-index and the m-quotient are computed in the Import and merge tab (“Citation indicators” panel).</dd><dt>Full counting</dt><dd>a publication counts once for each of its authors' countries, so country totals exceed the overall total.</dd><dt>World share</dt><dd>the country's publications divided by world publications with a known country.</dd><dt>Open access</dt><dd>gold (open journal), hybrid (open article in a subscription journal), green (repository copy), bronze (free to read without a license), diamond (no reading or publishing fees).</dd><dt>Patent family</dt><dd>all publications of the same invention across patent offices.</dd></dl></section>"
+   + "<section id=\"ab-src\"><h3>Sources and limits</h3><ul><li><b>OpenAlex</b> (CC0 license): broad coverage, but affiliations and countries are sometimes missing; a free key raises the request volume.</li><li><b>Patents</b>: EPO Open Patent Services (free once the account is approved) and Lens.org, under their terms of use. Only aggregated counts are shown.</li><li><b>Scopus and Web of Science</b>: through your exports (analyzed locally) or by API with your own key, in the Import and merge tab. <b>Crossref</b> (open) can be queried there too.</li></ul></section>",
   "about.author": "Created by", "about.contact": "Contact",
   "foot.data": "Bibliographic data: <a href=\"https://openalex.org\" target=\"_blank\" rel=\"noopener\">OpenAlex</a> (CC0 license). Patents: <a href=\"https://www.epo.org/en/searching-for-patents/data/web-services/ops\" target=\"_blank\" rel=\"noopener\">EPO Open Patent Services</a> and <a href=\"https://www.lens.org\" target=\"_blank\" rel=\"noopener\">The Lens</a>, under their terms of use. Imports: <a href=\"https://harzing.com/resources/publish-or-perish\" target=\"_blank\" rel=\"noopener\">Publish or Perish</a>, Scopus, Web of Science.",
   "foot.method": "Method: counts grouped server-side (group_by), full counting by country (a publication counts once for each of its authors' countries)."
@@ -2352,6 +2353,11 @@ function renderKPIs() {
   else { $("kH").textContent = (hi.capped ? "≥ " : "") + fmt(hi.h); $("kHS").textContent = file ? t("k.g", { g: hi.g }) : hi.capped ? t("k.hWait") : t("k.hCorpus"); }
   $("kCit").textContent = fmt(DATA.works.reduce((a, w) => a + w.cites, 0));
   $("kCitS").textContent = file ? t("k.citFile") : (DATA.total > 200 ? t("k.citTop") : t("k.citAll"));
+  // citations per publication: exact when every publication is known, otherwise estimated on a random sample
+  const allKnown = file || DATA.demo || DATA.total <= DATA.works.length;
+  if (allKnown) { $("kCpp").textContent = fmt1(DATA.works.reduce((a, w) => a + w.cites, 0) / (DATA.works.length || 1)); $("kCppS").textContent = t("k.cppAll"); }
+  else if (DATA.cpp) { $("kCpp").textContent = "≈ " + fmt1(DATA.cpp.v); $("kCppS").textContent = t("k.cppEst", { n: fmt(DATA.cpp.n) }); }
+  else { $("kCpp").textContent = "…"; $("kCppS").textContent = t("k.cppWait"); }
   const box = $("kRankBox");
   if (DATA.selected.length === 1 && DATA.world) {
     const list = DATA.world.list, cc = DATA.selected[0], idx = list.findIndex(r => r[0] === cc);
@@ -2371,7 +2377,7 @@ function renderKPIs() {
 function renderMetrics() {
   const p = $("metricsPanel");
   if (DATA.mode !== "file") { p.hidden = true; return; }
-  p.hidden = false;
+  p.hidden = false; $("metricsSrc").textContent = t("p.metricsSrc");
   const hi = hIndex(DATA.works), cites = DATA.works.reduce((a, w) => a + w.cites, 0);
   const span = Math.max(1, CUR_YEAR - DATA.range[0] + 1), cited = DATA.works.filter(w => w.cites > 0).length;
   const items = [
@@ -2465,7 +2471,7 @@ async function run(force) {
       if (hit) { DATA = hit.d; PAT = null; stale = { t: hit.t, msg: d.reason && d.reason.message }; }
       else {
         if (d.reason && d.reason.fatal) throw d.reason;
-        const ex = demoData(s); DATA = ex.d; PAT = ex.pat; demo = true;
+        const ex = demoData(s); DATA = ex.d; DATA.demo = true; PAT = ex.pat; demo = true;
       }
     }
     const bn = $("demoBanner");
@@ -2479,7 +2485,8 @@ async function run(force) {
     if (stale) setStatus("err", t("stale.status", { src: "OpenAlex", date: fmtWhen(stale.t) }));
     else if (demo) setStatus("demo", t("st.demo"));
     else setStatus("live", t("st.live"));
-    if (!demo && !stale) { checkBudget(); refineH(DATA, force); }
+    if (!demo && !stale) { checkBudget(); refineH(DATA, force); refineCpp(DATA, force); }
+    else if (stale && !DATA.cpp) { $("kCpp").textContent = "—"; $("kCppS").textContent = ""; }
   } catch (e) { setStatus("err", e.message); }
   finally { if (my === inflight) { $("go").disabled = false; $("grid").classList.remove("loading"); setProgress(null); pubBusy(false); } }
 }
@@ -2499,6 +2506,23 @@ async function refineH(d, force) {
     }
     d.hExact = lo; if (DATA === d && MODE === "live") renderKPIs();
   } catch { if (DATA === d) { $("kHS").textContent = t("k.hCorpus"); } }
+}
+/* Average citations per publication for large corpora: OpenAlex random sample of up to 1,000 publications
+   (same filter, fixed seed so the figure is stable from one visit to the next). */
+async function refineCpp(d, force) {
+  if (!d || d.mode !== "live" || !d.filter || d.total <= d.works.length) return;
+  const n = Math.min(1000, d.total), c = [];
+  try {
+    for (let page = 1; c.length < n; page++) {
+      const j = await getJSON(oaURL("/works", { filter: d.filter, sample: n, seed: 42, per_page: 200, page, select: "cited_by_count" }), force);
+      if (DATA !== d) return;
+      const r = j.results || []; if (!r.length) break;
+      c.push(...r.map(x => x.cited_by_count || 0));
+    }
+    if (!c.length) throw new Error("empty");
+    d.cpp = { v: c.reduce((a, b) => a + b, 0) / c.length, n: c.length };
+    if (DATA === d && MODE === "live") renderKPIs();
+  } catch { if (DATA === d) { $("kCpp").textContent = "—"; $("kCppS").textContent = ""; } }
 }
 async function checkBudget() {
   $("budget").textContent = "";
@@ -3439,11 +3463,31 @@ window.addEventListener("hashchange", () => {
   else if (!h && MODE !== "live" && !MODE.startsWith("custom:")) setMode("live");
   else if (h && CUSTOM.some(x => x.id === h) && MODE !== "custom:" + h) setMode("custom:" + h);
 });
-function renderAbout() {
-  const body = $("aboutBody");
-  $("aboutToc").innerHTML = `<span class="flabel">${esc(t("about.toc"))}</span>` + [...body.querySelectorAll("section")].map(sec => {
-    const h = sec.querySelector("h3"); return h ? `<button type="button" class="ghost" data-sec="${sec.id}">${esc(h.textContent)}</button>` : "";
-  }).join("");
+/* The About page is read from pages/about-fr.md and pages/about.md when they exist in the repository
+   (site.json "aboutFile" can point elsewhere, or "" to keep the built-in text); otherwise the built-in text is shown. */
+const ABOUT_DEFAULT = { fr: "pages/about-fr.md", en: "pages/about.md" };
+let aboutSeq = 0;
+async function renderAbout() {
+  const my = ++aboutSeq, body = $("aboutBody");
+  const files = SITE && SITE.aboutFile !== undefined ? SITE.aboutFile : ABOUT_DEFAULT;
+  const file = pickLang(files);
+  let fromFile = false;
+  if (file && /^https?:$/.test(location.protocol)) {
+    try { const r = await fetch(file, { cache: "no-cache" }); fromFile = r.ok; } catch {}
+  }
+  if (my !== aboutSeq || MODE !== "about") return;
+  $("aboutTitle").hidden = $("aboutLead").hidden = fromFile;
+  body.classList.toggle("custom", fromFile);
+  if (fromFile) await renderFileInto(body, file, () => MODE === "about" && my === aboutSeq);
+  else body.innerHTML = t("about.body");
+  if (my !== aboutSeq) return;
+  // table of contents: the sections of the built-in text, or the ## headings of the file
+  const heads = fromFile ? [...body.querySelectorAll("h2")] : [...body.querySelectorAll("section")].map(sec => sec.querySelector("h3")).filter(Boolean);
+  heads.forEach((h, i) => { const target = fromFile ? h : h.parentElement; if (!target.id) target.id = "ab-sec-" + i; });
+  $("aboutToc").innerHTML = heads.length ? `<span class="flabel">${esc(t("about.toc"))}</span>` + heads.map(h => {
+    const id = (fromFile ? h : h.parentElement).id;
+    return `<button type="button" class="ghost" data-sec="${esc(id)}">${esc(h.textContent)}</button>`;
+  }).join("") : "";
   $("aboutToc").querySelectorAll("[data-sec]").forEach(b => b.addEventListener("click", () => { const el = $(b.dataset.sec); if (el) el.scrollIntoView({ behavior: "smooth", block: "start" }); }));
   const a = SITE_CONFIG.about || {}, parts = [];
   if (a.name) parts.push(`<span>${esc(t("about.author"))} : <b>${esc(a.name)}</b></span>`);

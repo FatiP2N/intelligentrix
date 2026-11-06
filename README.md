@@ -67,7 +67,7 @@ Visitor ──► GitHub Pages (index.html, static)
 The site reads two things from the repository at load time:
 - **`site.json`**: added tabs, author and contact on the About page, default language, hidden tabs
   (`live`, `patents`, `worldbank`, `import`, `about`), text overrides and site colors (`colors`, `darkColors`).
-- **`pages/`**: one Markdown (or HTML) file per added tab. Embed codes (YouTube, Google Forms, maps, Flourish,
+- **`pages/`**: one Markdown (or HTML) file per added tab, and the About page (`about-fr.md`, `about.md`). Embed codes (YouTube, Google Forms, maps, Flourish,
   Datawrapper…) can be pasted directly into these pages.
 
 See [EDITING.md](EDITING.md) for a step-by-step guide.

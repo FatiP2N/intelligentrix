@@ -9,6 +9,7 @@ After each change, click **Commit changes**: the site updates within 1 to 2 minu
 | Add, rename or remove a tab | `site.json` + a page in `pages/` |
 | Write or edit the content of an added tab | `pages/page-name.md` |
 | Embed a video, form, map or chart (embed code) | the tab's `.md` page |
+| Edit the About page | `pages/about-fr.md` (French) and `pages/about.md` (English) |
 | Put my name and a contact on the About page | `site.json` → `about` |
 | Add content (or an embed) at the bottom of the About page | `site.json` → `aboutExtra` |
 | Change a text on the site (tab name, label…) | `site.json` → `texts` |
@@ -56,6 +57,18 @@ To check before saving, paste the content into **jsonlint.com**.
 
 ---
 
+## 1b. The About page
+
+The About page is read from **`pages/about-fr.md`** (French) and **`pages/about.md`** (English), written in Markdown
+like the other pages (see § 3). Edit them on GitHub with the pencil icon: site updates never overwrite them.
+Each `## heading` becomes an entry of the page's table of contents.
+
+- If these files are missing, the site shows its built-in About text.
+- To use other files: `"aboutFile": { "fr": "pages/my-about-fr.md", "en": "pages/my-about.md" }` in `site.json`
+  (or `"aboutFile": ""` to always use the built-in text).
+
+---
+
 ## 2. Adding a tab (3 steps)
 
 **Step 1. Create the page.** In the repository: **Add file → Create new file**. In the file name, type
@@ -78,7 +91,7 @@ To check before saving, paste the content into **jsonlint.com**.
   ],
 ```
 
-- `id`: a short name, with no spaces or accents. It also gives the direct link: `https://fatip2n.github.io/biblioscope/#tutorials`.
+- `id`: a short name, with no spaces or accents. It also gives the direct link: `https://fatip2n.github.io/intelligentrix/#tutorials`.
 - `title`: the name shown in the tab bar, in French and in English.
 - `file`: the page to display. Either one page for both languages (`"pages/tutorials.md"`), or one per language
   (`{ "fr": "…", "en": "…" }`).
@@ -251,9 +264,29 @@ The name and its subtitle appear at the top of the page and in the browser tab. 
 
 ---
 
-## 8. Deeper changes
+### Logo and browser-tab icon
 
-Colors, layout, new charts: the source files are in `biblioscope-source.zip`
+1. Upload your image to an `images` folder: **Add file → Upload files**, then type `images/` before the file name
+   (or open the `images` folder first). PNG with a transparent background or SVG work best.
+2. In `site.json`, add:
+
+```json
+  "logo": "images/logo.png",
+  "logoHeight": 44,
+  "logoOnly": false,
+  "favicon": "images/favicon.png",
+```
+
+- `logo`: the image shown at the top left, before the name.
+- `logoHeight` (optional): height in pixels, default 44.
+- `logoOnly` (optional): `true` if the logo already contains the name, to hide the text name.
+- `favicon` (optional): the small icon in the browser tab (a square image, e.g. 64 × 64 px).
+
+---
+
+## 9. Deeper changes
+
+Colors, layout, new charts: the source files are in `intelligentrix-source.zip`
 (`src/head.html` for styles and colors, `src/body.html` for the structure, `src/app.js` for the logic,
 `src/i18n.js` for the texts). After editing, `python3 build.py` regenerates `index.html`.
 The main colors are at the top of `src/head.html`: `--accent` (blue) and `--ochre` (ochre).
