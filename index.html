@@ -96,6 +96,13 @@ form.query.wq select,form.query.wq #wcode{width:100%}
 /* Import */
 .importer{display:grid;gap:12px}
 body.mode-file .top{position:static}
+.keyrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px}
+.nlbar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 8px;margin:0 0 10px;align-items:center}
+.nlbar .nlq{width:100%;border:1px dashed var(--accent);background:var(--surface);border-radius:var(--r);padding:8px 10px;font:inherit;color:var(--ink)}
+.nlbar .nlmsg{grid-column:1/-1;font-size:.84rem;color:var(--muted)}.nlbar .nlmsg:empty{display:none}.nlbar .nlmsg.ok{color:var(--good)}.nlbar .nlmsg.err{color:var(--bad)}
+.aisum{margin-top:12px;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:var(--r);padding:10px 14px;display:grid;gap:8px}
+.aisum-h{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center}.aisum-h .note{margin:0;font-size:.78rem}
+.sumtext{font-size:.92rem;line-height:1.6;color:var(--ink)}.sumtext:empty{display:none}.sumtext p{margin:0 0 8px;max-width:95ch}.sumtext .err{color:var(--bad)}
 .apiq{grid-template-columns:minmax(0,1fr);background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:grid;gap:8px}
 .apiq h3{font-family:var(--f-display);font-size:1.05rem;margin:0}
 .aqform{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto auto auto auto;gap:8px;align-items:end}
@@ -320,6 +327,11 @@ footer p{max-width:90ch;margin:.3em 0}
     </div>
 
     <div id="liveControls">
+      <div class="nlbar ai-only" data-nl="live" hidden>
+        <input class="nlq" data-i18n-ph="ai.nlPh" data-i18n-aria="ai.nlPh" maxlength="600">
+        <button class="ghost nlgo" type="button" data-i18n="ai.nlGo"></button>
+        <div class="nlmsg" aria-live="polite"></div>
+      </div>
       <form class="query" id="qform" autocomplete="off">
         <div class="field q">
           <label for="q" data-i18n="f.subject"></label>
@@ -356,6 +368,11 @@ footer p{max-width:90ch;margin:.3em 0}
     </div>
 
     <div id="patControls" hidden>
+      <div class="nlbar ai-only" data-nl="patents" hidden>
+        <input class="nlq" data-i18n-ph="ai.nlPhPat" data-i18n-aria="ai.nlPhPat" maxlength="600">
+        <button class="ghost nlgo" type="button" data-i18n="ai.nlGo"></button>
+        <div class="nlmsg" aria-live="polite"></div>
+      </div>
       <form class="query pq" id="pform" autocomplete="off">
         <div class="field q">
           <label for="pq" data-i18n="pf.keywords"></label>
@@ -417,6 +434,11 @@ footer p{max-width:90ch;margin:.3em 0}
       <div class="files" id="fileList" hidden></div>
       <section class="apiq" id="apiq">
         <h3 data-i18n="aq.title"></h3>
+        <div class="nlbar ai-only" data-nl="import" hidden>
+        <input class="nlq" data-i18n-ph="ai.nlPhImp" data-i18n-aria="ai.nlPhImp" maxlength="600">
+        <button class="ghost nlgo" type="button" data-i18n="ai.nlGo"></button>
+        <div class="nlmsg" aria-live="polite"></div>
+      </div>
         <form class="aqform" id="aqform" autocomplete="off">
           <div class="field q">
             <label for="aqTopic" data-i18n="aq.topic"></label>
@@ -493,7 +515,8 @@ footer p{max-width:90ch;margin:.3em 0}
       </div>
       <div class="field">
         <label for="wosKey" data-i18n="set.wosKey"></label>
-        <input id="wosKey" type="password" autocomplete="off" placeholder="developer.clarivate.com">
+        <div class="keyrow"><input id="wosKey" type="password" autocomplete="off" placeholder="developer.clarivate.com">
+        <select id="wosKind" data-i18n-aria="set.wosKind"><option value="starter">API Starter</option><option value="expanded">API Expanded</option></select></div>
       </div>
     </div>
     <p data-i18n="set.apiKeys"></p>
@@ -534,6 +557,10 @@ footer p{max-width:90ch;margin:.3em 0}
       <div class="kpi"><span class="k" data-i18n="k.oa"></span><span class="v" id="kOA">—</span><span class="s" data-i18n="k.oaS"></span></div>
       <div class="kpi" id="kRankBox"><span class="k" id="kRankK"></span><span class="v" id="kRank">—</span><span class="s" id="kRankS"></span></div>
       <div class="kpi"><span class="k" data-i18n="k.cpp"></span><span class="v" id="kCpp">—</span><span class="s" id="kCppS"></span></div>
+    </section>
+    <section class="aisum ai-only" id="sum-pub" hidden>
+      <div class="aisum-h"><button class="ghost sumgo" type="button" data-sum="pub" data-i18n="ai.sumGo"></button><span class="note" data-i18n="ai.sumNote"></span></div>
+      <div class="sumtext" aria-live="polite"></div>
     </section>
 
     <div class="grid" id="grid">
@@ -640,6 +667,10 @@ footer p{max-width:90ch;margin:.3em 0}
       <div class="kpi"><span class="k" data-i18n="pk.top"></span><span class="v small" id="pTopApp">—</span><span class="s" id="pTopAppS"></span></div>
       <div class="kpi"><span class="k" id="pActiveK" data-i18n="pk.active"></span><span class="v" id="pActive">—</span><span class="s" id="pActiveS"></span></div>
     </section>
+    <section class="aisum ai-only" id="sum-pat" hidden>
+      <div class="aisum-h"><button class="ghost sumgo" type="button" data-sum="pat" data-i18n="ai.sumGo"></button><span class="note" data-i18n="ai.sumNote"></span></div>
+      <div class="sumtext" aria-live="polite"></div>
+    </section>
 
     <div class="grid" id="pgrid">
       <section id="pYearsPanel" class="panel wide">
@@ -720,6 +751,10 @@ footer p{max-width:90ch;margin:.3em 0}
       <div class="kpi"><span class="k" data-i18n="wk.rank"></span><span class="v" id="wK2">—</span><span class="s" id="wK2s"></span></div>
       <div class="kpi"><span class="k" data-i18n="wk.change"></span><span class="v" id="wK3">—</span><span class="s" id="wK3s"></span></div>
       <div class="kpi"><span class="k" data-i18n="wk.world"></span><span class="v" id="wK4">—</span><span class="s" id="wK4s"></span></div>
+    </section>
+    <section class="aisum ai-only" id="sum-wb" hidden>
+      <div class="aisum-h"><button class="ghost sumgo" type="button" data-sum="wb" data-i18n="ai.sumGo"></button><span class="note" data-i18n="ai.sumNote"></span></div>
+      <div class="sumtext" aria-live="polite"></div>
     </section>
     <div class="grid" id="wgrid">
       <section id="wTrendPanel" class="panel wide">
@@ -888,17 +923,23 @@ fr: {
   "off.EP": "OEB (EP)", "off.WO": "OMPI (PCT)", "off.EA": "Eurasie (EA)", "off.AP": "ARIPO (AP)", "off.OA": "OAPI (OA)", "off.GC": "Golfe (GC)",
   "ex.inst": "Exemple : institution {x}", "ex.journal": "Exemple : revue {x}", "ex.title": "Exemple de publication n° {n} (titre fictif)",
   "ex.author": "Auteur {x}.", "ex.journal1": "Revue d'exemple", "ex.applicant": "Exemple : déposant {x}", "ex.patent": "Exemple de brevet n° {n} (titre fictif)",
-  "tab.about": "À propos", "tab.wb": "Banque mondiale", "set.advanced": "Réglages avancés (OpenAlex, proxy du site)", "set.workerPh": "proxy du site (par défaut)",
+  "tab.about": "À propos", "tab.wb": "Banque mondiale", "ai.nlPh": "Décrivez votre recherche en langage courant, ex. « publications marocaines sur le dessalement depuis 2015, comparées à la Tunisie »",
+  "ai.nlPhPat": "Décrivez votre recherche de brevets, ex. « brevets sur le dessalement solaire déposés au Maroc ou à l'OEB depuis 2010 »",
+  "ai.nlPhImp": "Décrivez votre recherche, ex. « articles marocains sur l'énergie solaire et l'eau, 2015 à 2024 » : l'IA écrit les requêtes Scopus et WoS",
+  "ai.nlGo": "Formuler avec l'IA", "ai.nlWait": "L'IA analyse votre demande…", "ai.nlDone": "{exp} Critères remplis : vérifiez-les, puis cliquez sur « {btn} ».", "ai.nlEmpty": "Décrivez d'abord votre recherche.",
+  "ai.limit": "Limite quotidienne de l'assistant IA atteinte. Réessayez demain.", "ai.off": "L'assistant IA n'est pas activé sur le serveur du site.", "ai.err": "L'assistant IA n'a pas pu répondre ({msg}).",
+  "ai.sumGo": "Synthèse des résultats (IA)", "ai.sumWait": "Rédaction de la synthèse…", "ai.sumNote": "Générée automatiquement par une IA à partir des indicateurs affichés : à vérifier.", "ai.sumLoading": "Attendez la fin du chargement des données.",
+  "set.advanced": "Réglages avancés (OpenAlex, proxy du site)", "set.workerPh": "proxy du site (par défaut)",
   "tst.proxyOk": "Proxy du site : joignable · OEB {epo} · OpenAlex {oa}", "tst.proxyKo": "Proxy du site : injoignable.",
   "tst.scopusOk": "Scopus : clé acceptée{lvl}.", "tst.scopusFull": " (accès complet)", "tst.scopusLtd": " (accès limité : 25 notices par page, 5 000 au plus ; connectez-vous au réseau de votre établissement pour l'accès complet)",
-  "tst.wosOk": "Web of Science : clé acceptée.", "tst.quota": "{b} : clé reconnue, mais limite de requêtes atteinte pour le moment (réessayez plus tard).", "tst.noKey": "{b} : pas de clé enregistrée.", "tst.refused": "{b} : clé refusée (statut {s}).", "tst.err": "{b} : erreur ({msg}).",
+  "tst.wosOk": "Web of Science ({k}) : clé acceptée.", "tst.wosWrongKind": "Web of Science : clé refusée par l'API {k} (statut {s}). Vérifiez le type d'API choisi (Starter ou Expanded) à côté de la clé.", "tst.quota": "{b} : clé reconnue, mais limite de requêtes atteinte pour le moment (réessayez plus tard).", "tst.noKey": "{b} : pas de clé enregistrée.", "tst.refused": "{b} : clé refusée (statut {s}).", "tst.err": "{b} : erreur ({msg}).",
   "tst.wosOld": "Web of Science : le proxy n'est pas à jour. Recollez la dernière version de worker.js dans Cloudflare.",
   "aq.topic": "Sujet (mots-clés)", "aq.topicPh": "ex. desalination", "aq.sources": "Sources", "aq.countries": "Pays (facultatif)", "aq.ctryCr": "Crossref ignoré : il ne permet pas de filtrer par pays (ses notices couvriraient tous les pays).", "aq.ctryWos": "Web of Science : le filtre pays (CU) a été refusé ; requête relancée sans filtre pays.", "aq.needTopicFor": "{b} : saisissez un sujet (mots-clés), base ignorée.", "aq.advanced": "Requête avancée (syntaxe propre à chaque base) et options",
   "aq.advNote": "Si vous remplissez une requête avancée, elle remplace le sujet pour cette base. Les années sont ajoutées automatiquement.", "aq.qScopus": "Requête Scopus", "aq.qWos": "Requête Web of Science",
-  "aq.help": "Scopus et Web of Science demandent votre clé ; OpenAlex et Crossref sont libres. Cochez une ou plusieurs sources : chaque base est interrogée à son tour, puis les résultats rejoignent les fichiers importés et sont fusionnés et dédoublonnés avec eux. Vous pouvez relancer d'autres requêtes : elles s'ajoutent. Web of Science Starter ne fournit pas les adresses des auteurs : ses notices seules n'apparaissent pas sur la carte des pays.",
+  "aq.help": "Scopus et Web of Science demandent votre clé ; OpenAlex et Crossref sont libres. Cochez une ou plusieurs sources : chaque base est interrogée à son tour, puis les résultats rejoignent les fichiers importés et sont fusionnés et dédoublonnés avec eux. Vous pouvez relancer d'autres requêtes : elles s'ajoutent. Avec l'API Web of Science Starter, les adresses des auteurs ne sont pas fournies : ses notices seules n'apparaissent pas sur la carte des pays (l'API Expanded, elle, les fournit).",
   "aq.needSource": "Cochez au moins une source.", "aq.needTopic": "Saisissez un sujet ou une requête avancée.", "aq.skip": "{b} : pas de requête, base ignorée.",
   "aq.ltd": " Accès Scopus limité (hors abonnement ou hors réseau de l'établissement) : 25 notices par page et 5 000 au plus.",
-  "set.scopusKey": "Clé API Scopus (facultative)", "set.wosKey": "Clé API Web of Science Starter (facultative)",
+  "set.scopusKey": "Clé API Scopus (facultative)", "set.wosKey": "Clé API Web of Science (facultative) et type d'API", "set.wosKind": "Type d'API Web of Science",
   "set.apiKeys": "Clés Scopus et Web of Science : elles restent dans ce navigateur et ne sont jamais enregistrées par le site. Scopus est interrogé directement depuis votre ordinateur (connectez-vous au réseau ou au VPN de votre établissement si votre accès en dépend). Web of Science n'accepte pas les appels depuis une page web : la requête et la clé transitent par le proxy du site, qui ne les enregistre pas. Chacun reste responsable de l'usage de sa clé selon la licence de son établissement.",
   "aq.title": "Interroger Scopus, Web of Science, OpenAlex ou Crossref", "aq.base": "Base", "aq.query": "Requête (syntaxe de la base)", "aq.max": "Notices max", "aq.go": "Lancer", "aq.stop": "Arrêter",
   "aq.complete": "Données complètes Scopus (tous les auteurs et les mots-clés, utiles pour les réseaux ; 8 fois plus lent)",
@@ -1094,17 +1135,23 @@ en: {
   "off.EP": "EPO (EP)", "off.WO": "WIPO (PCT)", "off.EA": "Eurasia (EA)", "off.AP": "ARIPO (AP)", "off.OA": "OAPI (OA)", "off.GC": "Gulf (GC)",
   "ex.inst": "Example: institution {x}", "ex.journal": "Example: journal {x}", "ex.title": "Example publication no. {n} (fictitious title)",
   "ex.author": "Author {x}.", "ex.journal1": "Example journal", "ex.applicant": "Example: applicant {x}", "ex.patent": "Example patent no. {n} (fictitious title)",
-  "tab.about": "About", "tab.wb": "World Bank", "set.advanced": "Advanced settings (OpenAlex, site proxy)", "set.workerPh": "site proxy (default)",
+  "tab.about": "About", "tab.wb": "World Bank", "ai.nlPh": "Describe your search in plain language, e.g. “Moroccan publications on desalination since 2015, compared with Tunisia”",
+  "ai.nlPhPat": "Describe your patent search, e.g. “patents on solar desalination filed in Morocco or at the EPO since 2010”",
+  "ai.nlPhImp": "Describe your search, e.g. “Moroccan articles on solar energy and water, 2015 to 2024”: the AI writes the Scopus and WoS queries",
+  "ai.nlGo": "Ask the AI", "ai.nlWait": "The AI is reading your request…", "ai.nlDone": "{exp} Criteria filled in: check them, then click “{btn}”.", "ai.nlEmpty": "First describe your search.",
+  "ai.limit": "Daily limit of the AI assistant reached. Try again tomorrow.", "ai.off": "The AI assistant is not enabled on the site's server.", "ai.err": "The AI assistant could not answer ({msg}).",
+  "ai.sumGo": "Summary of the results (AI)", "ai.sumWait": "Writing the summary…", "ai.sumNote": "Generated automatically by an AI from the indicators displayed: to be checked.", "ai.sumLoading": "Wait until the data has finished loading.",
+  "set.advanced": "Advanced settings (OpenAlex, site proxy)", "set.workerPh": "site proxy (default)",
   "tst.proxyOk": "Site proxy: reachable · EPO {epo} · OpenAlex {oa}", "tst.proxyKo": "Site proxy: unreachable.",
   "tst.scopusOk": "Scopus: key accepted{lvl}.", "tst.scopusFull": " (full access)", "tst.scopusLtd": " (limited access: 25 records per page, 5,000 at most; connect to your institution's network for full access)",
-  "tst.wosOk": "Web of Science: key accepted.", "tst.quota": "{b}: key recognized, but the request limit is reached for now (try again later).", "tst.noKey": "{b}: no key saved.", "tst.refused": "{b}: key refused (status {s}).", "tst.err": "{b}: error ({msg}).",
+  "tst.wosOk": "Web of Science ({k}): key accepted.", "tst.wosWrongKind": "Web of Science: key refused by the {k} API (status {s}). Check the API type chosen (Starter or Expanded) next to the key.", "tst.quota": "{b}: key recognized, but the request limit is reached for now (try again later).", "tst.noKey": "{b}: no key saved.", "tst.refused": "{b}: key refused (status {s}).", "tst.err": "{b}: error ({msg}).",
   "tst.wosOld": "Web of Science: the proxy is not up to date. Paste the latest worker.js into Cloudflare.",
   "aq.topic": "Topic (keywords)", "aq.topicPh": "e.g. desalination", "aq.sources": "Sources", "aq.countries": "Countries (optional)", "aq.ctryCr": "Crossref skipped: it cannot filter by country (its records would cover all countries).", "aq.ctryWos": "Web of Science: the country filter (CU) was refused; query rerun without the country filter.", "aq.needTopicFor": "{b}: enter a topic (keywords); database skipped.", "aq.advanced": "Advanced query (each database's own syntax) and options",
   "aq.advNote": "If you fill in an advanced query, it replaces the topic for that database. Years are added automatically.", "aq.qScopus": "Scopus query", "aq.qWos": "Web of Science query",
-  "aq.help": "Scopus and Web of Science need your key; OpenAlex and Crossref are open. Tick one or more sources: each database is queried in turn, then the results join the imported files and are merged and deduplicated with them. You can run more queries: they add up. Web of Science Starter does not provide author addresses: WoS-only records do not appear on the country map.",
+  "aq.help": "Scopus and Web of Science need your key; OpenAlex and Crossref are open. Tick one or more sources: each database is queried in turn, then the results join the imported files and are merged and deduplicated with them. You can run more queries: they add up. With the Web of Science Starter API, author addresses are not provided: WoS-only records do not appear on the country map (the Expanded API does provide them).",
   "aq.needSource": "Tick at least one source.", "aq.needTopic": "Enter a topic or an advanced query.", "aq.skip": "{b}: no query, database skipped.",
   "aq.ltd": " Limited Scopus access (no subscription or outside the institution's network): 25 records per page and 5,000 at most.",
-  "set.scopusKey": "Scopus API key (optional)", "set.wosKey": "Web of Science Starter API key (optional)",
+  "set.scopusKey": "Scopus API key (optional)", "set.wosKey": "Web of Science API key (optional) and API type", "set.wosKind": "Web of Science API type",
   "set.apiKeys": "Scopus and Web of Science keys stay in this browser and are never stored by the site. Scopus is queried directly from your computer (connect to your institution's network or VPN if your access depends on it). Web of Science does not accept calls from web pages: the query and key go through the site's proxy, which does not store them. Each user remains responsible for using their key under their institution's license.",
   "aq.title": "Query Scopus, Web of Science, OpenAlex or Crossref", "aq.base": "Database", "aq.query": "Query (database syntax)", "aq.max": "Max records", "aq.go": "Run", "aq.stop": "Stop",
   "aq.complete": "Complete Scopus data (all authors and keywords, useful for networks; 8 times slower)",
@@ -1996,6 +2043,7 @@ function scopusRow(e) {
 }
 /* Web of Science Starter: 50 records per page, through the Worker. */
 async function fetchWos(q, max, key, signal, progress, out) {
+  if (store.get("wosKind", "starter") === "expanded") return fetchWosExpanded(q, max, key, signal, progress, out);
   let page = 1, total = 0;
   while (out.length < max) {
     const u = new URL(cfg.worker + "/wos/documents");
@@ -2010,7 +2058,52 @@ async function fetchWos(q, max, key, signal, progress, out) {
   }
   return { total };
 }
+/* Web of Science API Expanded: 100 full records per request (with author addresses), through the Worker. */
+async function fetchWosExpanded(q, max, key, signal, progress, out) {
+  let first = 1, total = 0;
+  while (out.length < max) {
+    const u = new URL(cfg.worker + "/wos/expanded");
+    u.searchParams.set("databaseId", "WOS"); u.searchParams.set("usrQuery", q);
+    u.searchParams.set("count", String(Math.min(100, max - out.length))); u.searchParams.set("firstRecord", String(first));
+    const j = await aqFetch("wos", u.toString(), { headers: { "X-ApiKey": key }, signal }, s => progress(out.length, Math.min(total || max, max), s));
+    total = (j.QueryResult && j.QueryResult.RecordsFound) || 0;
+    const recs = j.Data && j.Data.Records && j.Data.Records.records && j.Data.Records.records.REC;
+    const list = recs == null ? [] : Array.isArray(recs) ? recs : [recs];
+    if (!list.length) break;
+    list.forEach(r => out.push({ __x: true, r }));
+    first += list.length; progress(out.length, Math.min(total, max));
+    if (out.length >= total || first > 100000) break;
+    await aqSleep(400, signal);
+  }
+  return { total };
+}
+function wosxRow(rec) {
+  const arr = x => x == null || x === "" ? [] : Array.isArray(x) ? x : [x];
+  const txt = x => x == null ? "" : typeof x === "object" ? String(x.content ?? "") : String(x);
+  const sd = rec.static_data || {}, sm = sd.summary || {}, fm = sd.fullrecord_metadata || {}, dd = rec.dynamic_data || {};
+  const titles = arr(sm.titles && sm.titles.title);
+  const title = txt(titles.find(x => x.type === "item")), source = txt(titles.find(x => x.type === "source"));
+  const pi = sm.pub_info || {};
+  const names = arr(sm.names && sm.names.name).filter(n => !n.role || n.role === "author").sort((a, b) => (a.seq_no || 0) - (b.seq_no || 0));
+  const addr = arr(fm.addresses && fm.addresses.address_name).map(a => {
+    const sp = a.address_spec || {}, orgs = arr(sp.organizations && sp.organizations.organization);
+    const org = txt(orgs.find(o => o && o.pref === "Y") || orgs[0]) || (sp.full_address || "").split(",")[0];
+    return [org, sp.country].filter(Boolean).join(", ");
+  }).filter(Boolean);
+  const tc = arr(dd.citation_related && dd.citation_related.tc_list && dd.citation_related.tc_list.silo_tc);
+  const cites = (tc.find(x => x.coll_id === "WOS") || tc[0] || {}).local_count;
+  const ids = arr(dd.cluster_related && dd.cluster_related.identifiers && dd.cluster_related.identifiers.identifier);
+  const doi = (ids.find(x => x.type === "doi") || ids.find(x => x.type === "xref_doi") || {}).value || "";
+  const kw = arr(fm.keywords && fm.keywords.keyword).map(txt).filter(Boolean);
+  return {
+    "title": title, "year": String(pi.pubyear || ""), "times cited, wos core": cites ?? "", "source title": source, "doi": doi,
+    "authors": names.map(n => n.wos_standard || n.display_name || n.full_name).filter(Boolean).join("; "),
+    "affiliations": [...new Set(addr)].join("; "), "document type": arr(sm.doctypes && sm.doctypes.doctype).map(txt).join("; "),
+    "author keywords": kw.join("; "), "ut": rec.UID || ""
+  };
+}
 function wosRow(h) {
+  if (h && h.__x) return wosxRow(h.r);
   const arr = x => x == null ? [] : Array.isArray(x) ? x : [x];
   const src = h.source || {}, ids = h.identifiers || {};
   const cites = arr(h.citations).find(c => /wos/i.test(c.db || "")) || arr(h.citations)[0] || {};
@@ -2062,7 +2155,8 @@ $("aqform").addEventListener("submit", async e => {
         q = b === "wos" ? `(${q}) AND CU=(${ctryEn.map(n => `"${n}"`).join(" OR ")})` : `(${q}) AND (${ctryEn.map(n => `AFFILCOUNTRY("${n}")`).join(" OR ")})`;
       }
     }
-    const key = (store.get(b === "wos" ? "wosKey" : "scopusKey", "") || "").trim(), bmax = b === "wos" ? Math.min(max, 5000) : max;
+    const key = (store.get(b === "wos" ? "wosKey" : "scopusKey", "") || "").trim();
+    const bmax = b === "wos" && store.get("wosKind", "starter") !== "expanded" ? Math.min(max, 5000) : max;
     let got = [], total = 0, limited = false, stopped = false;
     const acc = [], mapRow = ({ wos: wosRow, openalex: openAlexRow, crossref: crossrefRow })[b] || scopusRow;
     const progress = (n, m, wait) => { show(aqLine("", t("aq.progress", { b: aqName(b), n: fmt(n), m: fmt(m) }) + (wait ? t("aq.wait", { s: wait }) : ""))); setProgress(m ? (k + n / m) / jobs.length : -1); };
@@ -2387,6 +2481,7 @@ function renderMetrics() {
   $("metrics").innerHTML = items.map(([k, v, s]) => `<div><span class="k">${esc(k)}</span><span class="v">${esc(v)}</span><span class="s">${esc(s)}</span></div>`).join("");
 }
 function renderAll() {
+  sumClear("pub", DATA);
   if (!DATA) return;
   const th = T(), file = DATA.mode === "file";
   $("srcYears").textContent = file ? t("src.file") : "OpenAlex";
@@ -2760,6 +2855,7 @@ function patBusyFrom(d) {
   ["patNetPanel", "pCodesPanel", "pAppPanel", "pTopPanel"].forEach(id => busy(id, sL));
 }
 function renderPat() {
+  sumClear("pat", PDATA);
   const d = PDATA; if (!d) return;
   const th = T(), ps = d.ps;
   patBusyFrom(d);
@@ -3290,6 +3386,7 @@ async function runWb() {
 }
 function renderWb() {
   const d = WDATA; if (!d) return;
+  sumClear("wb", WDATA);
   const th = T(), s = d.s, ax = axisCommon(th);
   const cn = c => c === "WLD" ? t("w.world") : cname(c);
   const sb = $("wStale");
@@ -3678,6 +3775,136 @@ function applyColors(light, dark) {
   return L;
 }
 
+/* ======================================================================
+   AI ASSISTANT (through the site's proxy, Cloudflare Workers AI)
+   1) "Ask the AI": a request in plain language is turned into the form's criteria; the visitor checks them, then runs.
+   2) "Summary of the results": one or two paragraphs written from the indicators displayed (figures only, no records).
+   Shown only when the proxy reports that Workers AI is enabled.
+   ====================================================================== */
+let AI_OK = false;
+const SUMFOR = {};   // which result set each summary was written for
+async function aiCheck() {
+  AI_OK = false;
+  if (cfg.worker) { try { const j = await (await fetch(cfg.worker + "/health")).json(); AI_OK = !!j.ai; } catch {} }
+  document.querySelectorAll(".ai-only").forEach(el => { el.hidden = !AI_OK; });
+}
+async function aiCall(body) {
+  const r = await fetch(cfg.worker + "/ai", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...body, lang: LANG }) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw Object.assign(new Error(j.error || "HTTP " + r.status), { status: r.status });
+  return j;
+}
+const aiErrText = e => e.status === 429 ? t("ai.limit") : e.status === 503 ? t("ai.off") : t("ai.err", { msg: e.message });
+const okCountry = c => { const u = unify(String(c || "").toUpperCase()); return ISO.includes(u) ? u : null; };
+function applyCriteria(mode, c) {
+  const setYears = (a, b) => { if (c.year_from) { $(a).value = c.year_from; $(b).value = c.year_to || CUR_YEAR; } else if (c.year_to) $(b).value = c.year_to; };
+  if (mode === "live") {
+    $("q").value = c.topic || "";
+    SELECTED = [...new Set((c.countries || []).map(okCountry).filter(Boolean))]; pubChips.draw();
+    $("q2").value = c.compare_topic || "";
+    $("c2").value = c.compare_country && okCountry(c.compare_country) ? cname(okCountry(c.compare_country)) : "";
+    setYears("y1", "y2");
+    $("type").value = c.type || ""; $("oaOnly").checked = !!c.open_access;
+    if (c.compare_topic || c.compare_country) { const d = document.querySelector("#liveControls details"); if (d) d.open = true; }
+    return t("btn.analyze");
+  }
+  if (mode === "patents") {
+    $("pq").value = c.keywords || ""; $("pap").value = c.applicant || "";
+    $("pclsType").value = c.code_type === "ipc" ? "ipc" : "cpc"; $("pcls").value = (c.codes || []).join(", ");
+    PSEL = [...new Set((c.jurisdictions || []).map(x => resolveOffice(x)).filter(Boolean))]; patChips.draw();
+    setYears("py1", "py2");
+    return t("btn.analyze");
+  }
+  $("aqTopic").value = c.topic || "";
+  AQC = [...new Set((c.countries || []).map(okCountry).filter(Boolean))]; aqChips.draw();
+  setYears("aqY1", "aqY2");
+  $("aqQScopus").value = c.scopus_query || ""; $("aqQWos").value = c.wos_query || "";
+  if (c.scopus_query || c.wos_query) $("aqAdv").open = true;
+  return t("aq.go");
+}
+document.querySelectorAll(".nlbar").forEach(bar => {
+  const mode = bar.dataset.nl, input = bar.querySelector(".nlq"), btn = bar.querySelector(".nlgo"), msg = bar.querySelector(".nlmsg");
+  const go = async () => {
+    const text = input.value.trim();
+    if (!text) { msg.className = "nlmsg err"; msg.textContent = t("ai.nlEmpty"); input.focus(); return; }
+    btn.disabled = true; msg.className = "nlmsg"; msg.textContent = t("ai.nlWait");
+    try {
+      const { criteria } = await aiCall({ task: "parse", mode, text });
+      const label = applyCriteria(mode, criteria || {});
+      msg.className = "nlmsg ok"; msg.textContent = t("ai.nlDone", { exp: (criteria && criteria.explanation) || "", btn: label }).trim();
+    } catch (e) { msg.className = "nlmsg err"; msg.textContent = aiErrText(e); }
+    finally { btn.disabled = false; }
+  };
+  btn.addEventListener("click", go);
+  input.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); go(); } });
+});
+
+/* --- summary: compact figures sent to the model (never the records themselves) --- */
+const topN = (arr, n, nameFn) => (arr || []).slice(0, n).map(([k, v]) => [nameFn ? nameFn(k) : k, v]);
+function sumData(view) {
+  if (view === "pat") {
+    const d = PDATA; if (!d) return null;
+    return {
+      dataset: "patents" + (d.source === "sample" ? " (Espacenet sample, counted in families)" : " (EPO publications)"),
+      criteria: { keywords: d.ps.q, codes: d.ps.codes, applicant: d.ps.applicant, jurisdictions: d.ps.countries, period: [d.ps.y1, d.ps.y2] },
+      total: d.total, per_year: d.byYear, top_offices: topN(d.byOffice, 10, officeName),
+      top_applicants: topN(d.topApplicants, 10), applicant_countries: topN(d.byApplicantCountry, 10, cname),
+      top_classification_codes: topN(d.topCodes, 10), sample_size_for_applicants_and_codes: d.sampleN || null
+    };
+  }
+  if (view === "wb") {
+    const d = WDATA; if (!d) return null;
+    const series = {}; d.byC.forEach((m, k) => { const ys = [...m.keys()].sort((a, b) => a - b); if (ys.length) series[k === "WLD" ? "World" : cname(k)] = { first: [ys[0], m.get(ys[0])], last: [ys[ys.length - 1], m.get(ys[ys.length - 1])] }; });
+    return {
+      dataset: "World Bank indicator", indicator: d.name, code: d.s.code, period: [d.s.y1, d.s.y2], values_by_country: series,
+      world_ranking_top10: topN(d.ranking.map(r => [r[0], r[1]]), 10, cname),
+      ranks_of_selected: d.s.countries.map(c => { const i = d.ranking.findIndex(r => r[0] === c); return [cname(c), i >= 0 ? i + 1 : null]; })
+    };
+  }
+  const d = DATA; if (!d || d.demo) return null;
+  const hi = hIndex(d.works || []);
+  const out = {
+    dataset: d.mode === "file" ? "publications from imported files (" + [...new Set(FILES.map(f => f.base))].join(", ") + ")" : "publications (OpenAlex)",
+    period: d.range, total_publications: d.total, per_year: d.years,
+    h_index: d.hExact != null ? d.hExact : hi.h, top_countries: topN(d.countries, 10, cname),
+    top_institutions: topN(d.inst, 8), top_journals: topN(d.sources, 8), top_fields: topN(d.fields, 8), open_access: d.oa
+  };
+  if (d.mode !== "file") {
+    out.criteria = { topic: d.main.q, countries: (d.main.countries || []).map(cname) };
+    if (d.cpp) out.citations_per_publication_estimate = Math.round(d.cpp.v * 10) / 10;
+    if (d.cmp && d.years2) out.comparison = { topic: d.cmp.q, countries: (d.cmp.countries || []).map(cname), per_year: d.years2 };
+    if (d.intl != null) out.international_collaboration = d.intl;
+  } else {
+    out.citations_per_publication = Math.round((d.works || []).reduce((a, w) => a + w.cites, 0) / Math.max(1, (d.works || []).length) * 10) / 10;
+    out.g_index = hi.g;
+  }
+  return out;
+}
+/* a summary stays visible as long as the same results are shown (same criteria and totals) */
+function sumSig(view, d) {
+  if (!d) return "";
+  if (view === "pat") return JSON.stringify([d.ps, d.total, d.source]);
+  if (view === "wb") return JSON.stringify([d.s, d.name]);
+  return JSON.stringify([d.mode, d.total, d.range, d.main && d.main.q, d.main && d.main.countries, d.cmp, FILES.length]);
+}
+function sumClear(view, data) {
+  if (SUMFOR[view] && SUMFOR[view] === sumSig(view, data)) return;
+  SUMFOR[view] = null;
+  const box = document.querySelector("#sum-" + view + " .sumtext"); if (box) box.innerHTML = "";
+}
+document.querySelectorAll(".sumgo").forEach(btn => btn.addEventListener("click", async () => {
+  const view = btn.dataset.sum, box = document.querySelector("#sum-" + view + " .sumtext");
+  if ((view === "pat" && PDATA && PDATA.loading) || (view === "pub" && $("grid").classList.contains("loading"))) { box.innerHTML = `<p class="err">${esc(t("ai.sumLoading"))}</p>`; return; }
+  const data = sumData(view); if (!data) return;
+  btn.disabled = true; box.innerHTML = `<p class="note">${esc(t("ai.sumWait"))}</p>`;
+  try {
+    const { summary } = await aiCall({ task: "summary", mode: view === "pat" ? "patents" : view === "wb" ? "wb" : (DATA.mode === "file" ? "file" : "live"), data });
+    box.innerHTML = String(summary || "").split(/\n\s*\n/).map(p => `<p>${esc(p.trim())}</p>`).join("");
+    SUMFOR[view] = sumSig(view, view === "pat" ? PDATA : view === "wb" ? WDATA : DATA);
+  } catch (e) { box.innerHTML = `<p class="err">${esc(aiErrText(e))}</p>`; }
+  finally { btn.disabled = false; }
+}));
+
 /* ---------- CSV copy ---------- */
 function csv(rows) { return rows.map(r => r.map(v => { const s = String(v ?? ""); return /[",;\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }).join(",")).join("\n"); }
 document.querySelectorAll("[data-copy]").forEach(b => b.addEventListener("click", async () => {
@@ -3697,14 +3924,15 @@ document.querySelectorAll("[data-copy]").forEach(b => b.addEventListener("click"
 // The proxy field only shows a URL the visitor typed; the site's own proxy is used by default.
 $("oaKey").value = cfg.key; $("workerUrl").value = store.get("worker") || ""; $("viaWorker").checked = cfg.viaWorker;
 $("scopusKey").value = store.get("scopusKey", "") || ""; $("wosKey").value = store.get("wosKey", "") || "";
+$("wosKind").value = store.get("wosKind", "starter") === "expanded" ? "expanded" : "starter";
 $("btnSettings").addEventListener("click", () => { const el = $("settings"); el.hidden = !el.hidden; $("btnSettings").setAttribute("aria-expanded", String(!el.hidden)); });
 function saveSettings() {
   store.set("oaKey", $("oaKey").value.trim()); store.set("worker", $("workerUrl").value.trim()); store.set("viaWorker", $("viaWorker").checked ? "1" : "0");
-  store.set("scopusKey", $("scopusKey").value.trim()); store.set("wosKey", $("wosKey").value.trim());
+  store.set("scopusKey", $("scopusKey").value.trim()); store.set("wosKey", $("wosKey").value.trim()); store.set("wosKind", $("wosKind").value);
   CACHE.clear();
 }
 $("saveSettings").addEventListener("click", () => {
-  saveSettings();
+  saveSettings(); aiCheck();
   const has = k => store.get(k, "").trim() ? t("set.present") : t("set.absent");
   $("settingsMsg").innerHTML = `<div class="ok">${esc(t("set.savedKeys", { s: has("scopusKey"), w: has("wosKey") }))}</div>`;
   if (MODE === "live") run(); else if (MODE === "pat") runPat();
@@ -3738,11 +3966,14 @@ $("testWorker").addEventListener("click", async () => {
   const wk = store.get("wosKey", "").trim();
   if (!wk) lines.push(aqLine("na", t("tst.noKey", { b: "Web of Science" })));
   else {
+    const xp = store.get("wosKind", "starter") === "expanded", kn = xp ? "Expanded" : "Starter";
     try {
-      const r = await fetch(w + "/wos/documents?db=WOS&limit=1&q=" + encodeURIComponent("TS=(water)"), { headers: { "X-ApiKey": wk } });
-      if (r.ok) lines.push(aqLine("ok", t("tst.wosOk")));
+      const r = await fetch(xp ? w + "/wos/expanded?databaseId=WOS&count=1&firstRecord=1&usrQuery=" + encodeURIComponent("TS=(water)")
+        : w + "/wos/documents?db=WOS&limit=1&q=" + encodeURIComponent("TS=(water)"), { headers: { "X-ApiKey": wk } });
+      if (r.ok) lines.push(aqLine("ok", t("tst.wosOk", { k: kn })));
       else if (r.status === 404) lines.push(aqLine("err", t("tst.wosOld")));
       else if (r.status === 429) lines.push(aqLine("ok", t("tst.quota", { b: "Web of Science" })));
+      else if (r.status === 401 || r.status === 403) lines.push(aqLine("err", t("tst.wosWrongKind", { k: kn, s: r.status })));
       else lines.push(aqLine("err", t("tst.refused", { b: "Web of Science", s: r.status })));
     } catch { lines.push(aqLine("err", t("tst.wosOld"))); }
   }
@@ -3809,6 +4040,7 @@ pubChips.draw(); patChips.draw(); wbChips.draw();
 $("qform").addEventListener("submit", e => { e.preventDefault(); run(); });
 setAuto();
 // The open tab is kept in the address (#patents, #worldbank, #import, #about…), so reloading the page stays on it.
+aiCheck();
 { const start = ({ "#about": "about", "#worldbank": "wb", "#patents": "pat", "#import": "file" })[location.hash];
   if (start) setMode(start); else run(); }
 loadSite();
