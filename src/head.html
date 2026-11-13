@@ -90,6 +90,13 @@ form.query.wq select,form.query.wq #wcode{width:100%}
 /* Import */
 .importer{display:grid;gap:12px}
 body.mode-file .top{position:static}
+.keyrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px}
+.nlbar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 8px;margin:0 0 10px;align-items:center}
+.nlbar .nlq{width:100%;border:1px dashed var(--accent);background:var(--surface);border-radius:var(--r);padding:8px 10px;font:inherit;color:var(--ink)}
+.nlbar .nlmsg{grid-column:1/-1;font-size:.84rem;color:var(--muted)}.nlbar .nlmsg:empty{display:none}.nlbar .nlmsg.ok{color:var(--good)}.nlbar .nlmsg.err{color:var(--bad)}
+.aisum{margin-top:12px;background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:var(--r);padding:10px 14px;display:grid;gap:8px}
+.aisum-h{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center}.aisum-h .note{margin:0;font-size:.78rem}
+.sumtext{font-size:.92rem;line-height:1.6;color:var(--ink)}.sumtext:empty{display:none}.sumtext p{margin:0 0 8px;max-width:95ch}.sumtext .err{color:var(--bad)}
 .apiq{grid-template-columns:minmax(0,1fr);background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:grid;gap:8px}
 .apiq h3{font-family:var(--f-display);font-size:1.05rem;margin:0}
 .aqform{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto auto auto auto;gap:8px;align-items:end}

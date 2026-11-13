@@ -18,6 +18,11 @@
     </div>
 
     <div id="liveControls">
+      <div class="nlbar ai-only" data-nl="live" hidden>
+        <input class="nlq" data-i18n-ph="ai.nlPh" data-i18n-aria="ai.nlPh" maxlength="600">
+        <button class="ghost nlgo" type="button" data-i18n="ai.nlGo"></button>
+        <div class="nlmsg" aria-live="polite"></div>
+      </div>
       <form class="query" id="qform" autocomplete="off">
         <div class="field q">
           <label for="q" data-i18n="f.subject"></label>
@@ -54,6 +59,11 @@
     </div>
 
     <div id="patControls" hidden>
+      <div class="nlbar ai-only" data-nl="patents" hidden>
+        <input class="nlq" data-i18n-ph="ai.nlPhPat" data-i18n-aria="ai.nlPhPat" maxlength="600">
+        <button class="ghost nlgo" type="button" data-i18n="ai.nlGo"></button>
+        <div class="nlmsg" aria-live="polite"></div>
+      </div>
       <form class="query pq" id="pform" autocomplete="off">
         <div class="field q">
           <label for="pq" data-i18n="pf.keywords"></label>
@@ -115,6 +125,11 @@
       <div class="files" id="fileList" hidden></div>
       <section class="apiq" id="apiq">
         <h3 data-i18n="aq.title"></h3>
+        <div class="nlbar ai-only" data-nl="import" hidden>
+        <input class="nlq" data-i18n-ph="ai.nlPhImp" data-i18n-aria="ai.nlPhImp" maxlength="600">
+        <button class="ghost nlgo" type="button" data-i18n="ai.nlGo"></button>
+        <div class="nlmsg" aria-live="polite"></div>
+      </div>
         <form class="aqform" id="aqform" autocomplete="off">
           <div class="field q">
             <label for="aqTopic" data-i18n="aq.topic"></label>
@@ -191,7 +206,8 @@
       </div>
       <div class="field">
         <label for="wosKey" data-i18n="set.wosKey"></label>
-        <input id="wosKey" type="password" autocomplete="off" placeholder="developer.clarivate.com">
+        <div class="keyrow"><input id="wosKey" type="password" autocomplete="off" placeholder="developer.clarivate.com">
+        <select id="wosKind" data-i18n-aria="set.wosKind"><option value="starter">API Starter</option><option value="expanded">API Expanded</option></select></div>
       </div>
     </div>
     <p data-i18n="set.apiKeys"></p>
@@ -232,6 +248,10 @@
       <div class="kpi"><span class="k" data-i18n="k.oa"></span><span class="v" id="kOA">—</span><span class="s" data-i18n="k.oaS"></span></div>
       <div class="kpi" id="kRankBox"><span class="k" id="kRankK"></span><span class="v" id="kRank">—</span><span class="s" id="kRankS"></span></div>
       <div class="kpi"><span class="k" data-i18n="k.cpp"></span><span class="v" id="kCpp">—</span><span class="s" id="kCppS"></span></div>
+    </section>
+    <section class="aisum ai-only" id="sum-pub" hidden>
+      <div class="aisum-h"><button class="ghost sumgo" type="button" data-sum="pub" data-i18n="ai.sumGo"></button><span class="note" data-i18n="ai.sumNote"></span></div>
+      <div class="sumtext" aria-live="polite"></div>
     </section>
 
     <div class="grid" id="grid">
@@ -338,6 +358,10 @@
       <div class="kpi"><span class="k" data-i18n="pk.top"></span><span class="v small" id="pTopApp">—</span><span class="s" id="pTopAppS"></span></div>
       <div class="kpi"><span class="k" id="pActiveK" data-i18n="pk.active"></span><span class="v" id="pActive">—</span><span class="s" id="pActiveS"></span></div>
     </section>
+    <section class="aisum ai-only" id="sum-pat" hidden>
+      <div class="aisum-h"><button class="ghost sumgo" type="button" data-sum="pat" data-i18n="ai.sumGo"></button><span class="note" data-i18n="ai.sumNote"></span></div>
+      <div class="sumtext" aria-live="polite"></div>
+    </section>
 
     <div class="grid" id="pgrid">
       <section id="pYearsPanel" class="panel wide">
@@ -418,6 +442,10 @@
       <div class="kpi"><span class="k" data-i18n="wk.rank"></span><span class="v" id="wK2">—</span><span class="s" id="wK2s"></span></div>
       <div class="kpi"><span class="k" data-i18n="wk.change"></span><span class="v" id="wK3">—</span><span class="s" id="wK3s"></span></div>
       <div class="kpi"><span class="k" data-i18n="wk.world"></span><span class="v" id="wK4">—</span><span class="s" id="wK4s"></span></div>
+    </section>
+    <section class="aisum ai-only" id="sum-wb" hidden>
+      <div class="aisum-h"><button class="ghost sumgo" type="button" data-sum="wb" data-i18n="ai.sumGo"></button><span class="note" data-i18n="ai.sumNote"></span></div>
+      <div class="sumtext" aria-live="polite"></div>
     </section>
     <div class="grid" id="wgrid">
       <section id="wTrendPanel" class="panel wide">

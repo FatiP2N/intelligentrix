@@ -805,6 +805,7 @@ function scopusRow(e) {
 }
 /* Web of Science Starter: 50 records per page, through the Worker. */
 async function fetchWos(q, max, key, signal, progress, out) {
+  if (store.get("wosKind", "starter") === "expanded") return fetchWosExpanded(q, max, key, signal, progress, out);
   let page = 1, total = 0;
   while (out.length < max) {
     const u = new URL(cfg.worker + "/wos/documents");
@@ -819,7 +820,52 @@ async function fetchWos(q, max, key, signal, progress, out) {
   }
   return { total };
 }
+/* Web of Science API Expanded: 100 full records per request (with author addresses), through the Worker. */
+async function fetchWosExpanded(q, max, key, signal, progress, out) {
+  let first = 1, total = 0;
+  while (out.length < max) {
+    const u = new URL(cfg.worker + "/wos/expanded");
+    u.searchParams.set("databaseId", "WOS"); u.searchParams.set("usrQuery", q);
+    u.searchParams.set("count", String(Math.min(100, max - out.length))); u.searchParams.set("firstRecord", String(first));
+    const j = await aqFetch("wos", u.toString(), { headers: { "X-ApiKey": key }, signal }, s => progress(out.length, Math.min(total || max, max), s));
+    total = (j.QueryResult && j.QueryResult.RecordsFound) || 0;
+    const recs = j.Data && j.Data.Records && j.Data.Records.records && j.Data.Records.records.REC;
+    const list = recs == null ? [] : Array.isArray(recs) ? recs : [recs];
+    if (!list.length) break;
+    list.forEach(r => out.push({ __x: true, r }));
+    first += list.length; progress(out.length, Math.min(total, max));
+    if (out.length >= total || first > 100000) break;
+    await aqSleep(400, signal);
+  }
+  return { total };
+}
+function wosxRow(rec) {
+  const arr = x => x == null || x === "" ? [] : Array.isArray(x) ? x : [x];
+  const txt = x => x == null ? "" : typeof x === "object" ? String(x.content ?? "") : String(x);
+  const sd = rec.static_data || {}, sm = sd.summary || {}, fm = sd.fullrecord_metadata || {}, dd = rec.dynamic_data || {};
+  const titles = arr(sm.titles && sm.titles.title);
+  const title = txt(titles.find(x => x.type === "item")), source = txt(titles.find(x => x.type === "source"));
+  const pi = sm.pub_info || {};
+  const names = arr(sm.names && sm.names.name).filter(n => !n.role || n.role === "author").sort((a, b) => (a.seq_no || 0) - (b.seq_no || 0));
+  const addr = arr(fm.addresses && fm.addresses.address_name).map(a => {
+    const sp = a.address_spec || {}, orgs = arr(sp.organizations && sp.organizations.organization);
+    const org = txt(orgs.find(o => o && o.pref === "Y") || orgs[0]) || (sp.full_address || "").split(",")[0];
+    return [org, sp.country].filter(Boolean).join(", ");
+  }).filter(Boolean);
+  const tc = arr(dd.citation_related && dd.citation_related.tc_list && dd.citation_related.tc_list.silo_tc);
+  const cites = (tc.find(x => x.coll_id === "WOS") || tc[0] || {}).local_count;
+  const ids = arr(dd.cluster_related && dd.cluster_related.identifiers && dd.cluster_related.identifiers.identifier);
+  const doi = (ids.find(x => x.type === "doi") || ids.find(x => x.type === "xref_doi") || {}).value || "";
+  const kw = arr(fm.keywords && fm.keywords.keyword).map(txt).filter(Boolean);
+  return {
+    "title": title, "year": String(pi.pubyear || ""), "times cited, wos core": cites ?? "", "source title": source, "doi": doi,
+    "authors": names.map(n => n.wos_standard || n.display_name || n.full_name).filter(Boolean).join("; "),
+    "affiliations": [...new Set(addr)].join("; "), "document type": arr(sm.doctypes && sm.doctypes.doctype).map(txt).join("; "),
+    "author keywords": kw.join("; "), "ut": rec.UID || ""
+  };
+}
 function wosRow(h) {
+  if (h && h.__x) return wosxRow(h.r);
   const arr = x => x == null ? [] : Array.isArray(x) ? x : [x];
   const src = h.source || {}, ids = h.identifiers || {};
   const cites = arr(h.citations).find(c => /wos/i.test(c.db || "")) || arr(h.citations)[0] || {};
@@ -871,7 +917,8 @@ $("aqform").addEventListener("submit", async e => {
         q = b === "wos" ? `(${q}) AND CU=(${ctryEn.map(n => `"${n}"`).join(" OR ")})` : `(${q}) AND (${ctryEn.map(n => `AFFILCOUNTRY("${n}")`).join(" OR ")})`;
       }
     }
-    const key = (store.get(b === "wos" ? "wosKey" : "scopusKey", "") || "").trim(), bmax = b === "wos" ? Math.min(max, 5000) : max;
+    const key = (store.get(b === "wos" ? "wosKey" : "scopusKey", "") || "").trim();
+    const bmax = b === "wos" && store.get("wosKind", "starter") !== "expanded" ? Math.min(max, 5000) : max;
     let got = [], total = 0, limited = false, stopped = false;
     const acc = [], mapRow = ({ wos: wosRow, openalex: openAlexRow, crossref: crossrefRow })[b] || scopusRow;
     const progress = (n, m, wait) => { show(aqLine("", t("aq.progress", { b: aqName(b), n: fmt(n), m: fmt(m) }) + (wait ? t("aq.wait", { s: wait }) : ""))); setProgress(m ? (k + n / m) / jobs.length : -1); };
@@ -1196,6 +1243,7 @@ function renderMetrics() {
   $("metrics").innerHTML = items.map(([k, v, s]) => `<div><span class="k">${esc(k)}</span><span class="v">${esc(v)}</span><span class="s">${esc(s)}</span></div>`).join("");
 }
 function renderAll() {
+  sumClear("pub", DATA);
   if (!DATA) return;
   const th = T(), file = DATA.mode === "file";
   $("srcYears").textContent = file ? t("src.file") : "OpenAlex";
@@ -1569,6 +1617,7 @@ function patBusyFrom(d) {
   ["patNetPanel", "pCodesPanel", "pAppPanel", "pTopPanel"].forEach(id => busy(id, sL));
 }
 function renderPat() {
+  sumClear("pat", PDATA);
   const d = PDATA; if (!d) return;
   const th = T(), ps = d.ps;
   patBusyFrom(d);
@@ -2099,6 +2148,7 @@ async function runWb() {
 }
 function renderWb() {
   const d = WDATA; if (!d) return;
+  sumClear("wb", WDATA);
   const th = T(), s = d.s, ax = axisCommon(th);
   const cn = c => c === "WLD" ? t("w.world") : cname(c);
   const sb = $("wStale");
@@ -2487,6 +2537,136 @@ function applyColors(light, dark) {
   return L;
 }
 
+/* ======================================================================
+   AI ASSISTANT (through the site's proxy, Cloudflare Workers AI)
+   1) "Ask the AI": a request in plain language is turned into the form's criteria; the visitor checks them, then runs.
+   2) "Summary of the results": one or two paragraphs written from the indicators displayed (figures only, no records).
+   Shown only when the proxy reports that Workers AI is enabled.
+   ====================================================================== */
+let AI_OK = false;
+const SUMFOR = {};   // which result set each summary was written for
+async function aiCheck() {
+  AI_OK = false;
+  if (cfg.worker) { try { const j = await (await fetch(cfg.worker + "/health")).json(); AI_OK = !!j.ai; } catch {} }
+  document.querySelectorAll(".ai-only").forEach(el => { el.hidden = !AI_OK; });
+}
+async function aiCall(body) {
+  const r = await fetch(cfg.worker + "/ai", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...body, lang: LANG }) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw Object.assign(new Error(j.error || "HTTP " + r.status), { status: r.status });
+  return j;
+}
+const aiErrText = e => e.status === 429 ? t("ai.limit") : e.status === 503 ? t("ai.off") : t("ai.err", { msg: e.message });
+const okCountry = c => { const u = unify(String(c || "").toUpperCase()); return ISO.includes(u) ? u : null; };
+function applyCriteria(mode, c) {
+  const setYears = (a, b) => { if (c.year_from) { $(a).value = c.year_from; $(b).value = c.year_to || CUR_YEAR; } else if (c.year_to) $(b).value = c.year_to; };
+  if (mode === "live") {
+    $("q").value = c.topic || "";
+    SELECTED = [...new Set((c.countries || []).map(okCountry).filter(Boolean))]; pubChips.draw();
+    $("q2").value = c.compare_topic || "";
+    $("c2").value = c.compare_country && okCountry(c.compare_country) ? cname(okCountry(c.compare_country)) : "";
+    setYears("y1", "y2");
+    $("type").value = c.type || ""; $("oaOnly").checked = !!c.open_access;
+    if (c.compare_topic || c.compare_country) { const d = document.querySelector("#liveControls details"); if (d) d.open = true; }
+    return t("btn.analyze");
+  }
+  if (mode === "patents") {
+    $("pq").value = c.keywords || ""; $("pap").value = c.applicant || "";
+    $("pclsType").value = c.code_type === "ipc" ? "ipc" : "cpc"; $("pcls").value = (c.codes || []).join(", ");
+    PSEL = [...new Set((c.jurisdictions || []).map(x => resolveOffice(x)).filter(Boolean))]; patChips.draw();
+    setYears("py1", "py2");
+    return t("btn.analyze");
+  }
+  $("aqTopic").value = c.topic || "";
+  AQC = [...new Set((c.countries || []).map(okCountry).filter(Boolean))]; aqChips.draw();
+  setYears("aqY1", "aqY2");
+  $("aqQScopus").value = c.scopus_query || ""; $("aqQWos").value = c.wos_query || "";
+  if (c.scopus_query || c.wos_query) $("aqAdv").open = true;
+  return t("aq.go");
+}
+document.querySelectorAll(".nlbar").forEach(bar => {
+  const mode = bar.dataset.nl, input = bar.querySelector(".nlq"), btn = bar.querySelector(".nlgo"), msg = bar.querySelector(".nlmsg");
+  const go = async () => {
+    const text = input.value.trim();
+    if (!text) { msg.className = "nlmsg err"; msg.textContent = t("ai.nlEmpty"); input.focus(); return; }
+    btn.disabled = true; msg.className = "nlmsg"; msg.textContent = t("ai.nlWait");
+    try {
+      const { criteria } = await aiCall({ task: "parse", mode, text });
+      const label = applyCriteria(mode, criteria || {});
+      msg.className = "nlmsg ok"; msg.textContent = t("ai.nlDone", { exp: (criteria && criteria.explanation) || "", btn: label }).trim();
+    } catch (e) { msg.className = "nlmsg err"; msg.textContent = aiErrText(e); }
+    finally { btn.disabled = false; }
+  };
+  btn.addEventListener("click", go);
+  input.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); go(); } });
+});
+
+/* --- summary: compact figures sent to the model (never the records themselves) --- */
+const topN = (arr, n, nameFn) => (arr || []).slice(0, n).map(([k, v]) => [nameFn ? nameFn(k) : k, v]);
+function sumData(view) {
+  if (view === "pat") {
+    const d = PDATA; if (!d) return null;
+    return {
+      dataset: "patents" + (d.source === "sample" ? " (Espacenet sample, counted in families)" : " (EPO publications)"),
+      criteria: { keywords: d.ps.q, codes: d.ps.codes, applicant: d.ps.applicant, jurisdictions: d.ps.countries, period: [d.ps.y1, d.ps.y2] },
+      total: d.total, per_year: d.byYear, top_offices: topN(d.byOffice, 10, officeName),
+      top_applicants: topN(d.topApplicants, 10), applicant_countries: topN(d.byApplicantCountry, 10, cname),
+      top_classification_codes: topN(d.topCodes, 10), sample_size_for_applicants_and_codes: d.sampleN || null
+    };
+  }
+  if (view === "wb") {
+    const d = WDATA; if (!d) return null;
+    const series = {}; d.byC.forEach((m, k) => { const ys = [...m.keys()].sort((a, b) => a - b); if (ys.length) series[k === "WLD" ? "World" : cname(k)] = { first: [ys[0], m.get(ys[0])], last: [ys[ys.length - 1], m.get(ys[ys.length - 1])] }; });
+    return {
+      dataset: "World Bank indicator", indicator: d.name, code: d.s.code, period: [d.s.y1, d.s.y2], values_by_country: series,
+      world_ranking_top10: topN(d.ranking.map(r => [r[0], r[1]]), 10, cname),
+      ranks_of_selected: d.s.countries.map(c => { const i = d.ranking.findIndex(r => r[0] === c); return [cname(c), i >= 0 ? i + 1 : null]; })
+    };
+  }
+  const d = DATA; if (!d || d.demo) return null;
+  const hi = hIndex(d.works || []);
+  const out = {
+    dataset: d.mode === "file" ? "publications from imported files (" + [...new Set(FILES.map(f => f.base))].join(", ") + ")" : "publications (OpenAlex)",
+    period: d.range, total_publications: d.total, per_year: d.years,
+    h_index: d.hExact != null ? d.hExact : hi.h, top_countries: topN(d.countries, 10, cname),
+    top_institutions: topN(d.inst, 8), top_journals: topN(d.sources, 8), top_fields: topN(d.fields, 8), open_access: d.oa
+  };
+  if (d.mode !== "file") {
+    out.criteria = { topic: d.main.q, countries: (d.main.countries || []).map(cname) };
+    if (d.cpp) out.citations_per_publication_estimate = Math.round(d.cpp.v * 10) / 10;
+    if (d.cmp && d.years2) out.comparison = { topic: d.cmp.q, countries: (d.cmp.countries || []).map(cname), per_year: d.years2 };
+    if (d.intl != null) out.international_collaboration = d.intl;
+  } else {
+    out.citations_per_publication = Math.round((d.works || []).reduce((a, w) => a + w.cites, 0) / Math.max(1, (d.works || []).length) * 10) / 10;
+    out.g_index = hi.g;
+  }
+  return out;
+}
+/* a summary stays visible as long as the same results are shown (same criteria and totals) */
+function sumSig(view, d) {
+  if (!d) return "";
+  if (view === "pat") return JSON.stringify([d.ps, d.total, d.source]);
+  if (view === "wb") return JSON.stringify([d.s, d.name]);
+  return JSON.stringify([d.mode, d.total, d.range, d.main && d.main.q, d.main && d.main.countries, d.cmp, FILES.length]);
+}
+function sumClear(view, data) {
+  if (SUMFOR[view] && SUMFOR[view] === sumSig(view, data)) return;
+  SUMFOR[view] = null;
+  const box = document.querySelector("#sum-" + view + " .sumtext"); if (box) box.innerHTML = "";
+}
+document.querySelectorAll(".sumgo").forEach(btn => btn.addEventListener("click", async () => {
+  const view = btn.dataset.sum, box = document.querySelector("#sum-" + view + " .sumtext");
+  if ((view === "pat" && PDATA && PDATA.loading) || (view === "pub" && $("grid").classList.contains("loading"))) { box.innerHTML = `<p class="err">${esc(t("ai.sumLoading"))}</p>`; return; }
+  const data = sumData(view); if (!data) return;
+  btn.disabled = true; box.innerHTML = `<p class="note">${esc(t("ai.sumWait"))}</p>`;
+  try {
+    const { summary } = await aiCall({ task: "summary", mode: view === "pat" ? "patents" : view === "wb" ? "wb" : (DATA.mode === "file" ? "file" : "live"), data });
+    box.innerHTML = String(summary || "").split(/\n\s*\n/).map(p => `<p>${esc(p.trim())}</p>`).join("");
+    SUMFOR[view] = sumSig(view, view === "pat" ? PDATA : view === "wb" ? WDATA : DATA);
+  } catch (e) { box.innerHTML = `<p class="err">${esc(aiErrText(e))}</p>`; }
+  finally { btn.disabled = false; }
+}));
+
 /* ---------- CSV copy ---------- */
 function csv(rows) { return rows.map(r => r.map(v => { const s = String(v ?? ""); return /[",;\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }).join(",")).join("\n"); }
 document.querySelectorAll("[data-copy]").forEach(b => b.addEventListener("click", async () => {
@@ -2506,14 +2686,15 @@ document.querySelectorAll("[data-copy]").forEach(b => b.addEventListener("click"
 // The proxy field only shows a URL the visitor typed; the site's own proxy is used by default.
 $("oaKey").value = cfg.key; $("workerUrl").value = store.get("worker") || ""; $("viaWorker").checked = cfg.viaWorker;
 $("scopusKey").value = store.get("scopusKey", "") || ""; $("wosKey").value = store.get("wosKey", "") || "";
+$("wosKind").value = store.get("wosKind", "starter") === "expanded" ? "expanded" : "starter";
 $("btnSettings").addEventListener("click", () => { const el = $("settings"); el.hidden = !el.hidden; $("btnSettings").setAttribute("aria-expanded", String(!el.hidden)); });
 function saveSettings() {
   store.set("oaKey", $("oaKey").value.trim()); store.set("worker", $("workerUrl").value.trim()); store.set("viaWorker", $("viaWorker").checked ? "1" : "0");
-  store.set("scopusKey", $("scopusKey").value.trim()); store.set("wosKey", $("wosKey").value.trim());
+  store.set("scopusKey", $("scopusKey").value.trim()); store.set("wosKey", $("wosKey").value.trim()); store.set("wosKind", $("wosKind").value);
   CACHE.clear();
 }
 $("saveSettings").addEventListener("click", () => {
-  saveSettings();
+  saveSettings(); aiCheck();
   const has = k => store.get(k, "").trim() ? t("set.present") : t("set.absent");
   $("settingsMsg").innerHTML = `<div class="ok">${esc(t("set.savedKeys", { s: has("scopusKey"), w: has("wosKey") }))}</div>`;
   if (MODE === "live") run(); else if (MODE === "pat") runPat();
@@ -2547,11 +2728,14 @@ $("testWorker").addEventListener("click", async () => {
   const wk = store.get("wosKey", "").trim();
   if (!wk) lines.push(aqLine("na", t("tst.noKey", { b: "Web of Science" })));
   else {
+    const xp = store.get("wosKind", "starter") === "expanded", kn = xp ? "Expanded" : "Starter";
     try {
-      const r = await fetch(w + "/wos/documents?db=WOS&limit=1&q=" + encodeURIComponent("TS=(water)"), { headers: { "X-ApiKey": wk } });
-      if (r.ok) lines.push(aqLine("ok", t("tst.wosOk")));
+      const r = await fetch(xp ? w + "/wos/expanded?databaseId=WOS&count=1&firstRecord=1&usrQuery=" + encodeURIComponent("TS=(water)")
+        : w + "/wos/documents?db=WOS&limit=1&q=" + encodeURIComponent("TS=(water)"), { headers: { "X-ApiKey": wk } });
+      if (r.ok) lines.push(aqLine("ok", t("tst.wosOk", { k: kn })));
       else if (r.status === 404) lines.push(aqLine("err", t("tst.wosOld")));
       else if (r.status === 429) lines.push(aqLine("ok", t("tst.quota", { b: "Web of Science" })));
+      else if (r.status === 401 || r.status === 403) lines.push(aqLine("err", t("tst.wosWrongKind", { k: kn, s: r.status })));
       else lines.push(aqLine("err", t("tst.refused", { b: "Web of Science", s: r.status })));
     } catch { lines.push(aqLine("err", t("tst.wosOld"))); }
   }
@@ -2618,6 +2802,7 @@ pubChips.draw(); patChips.draw(); wbChips.draw();
 $("qform").addEventListener("submit", e => { e.preventDefault(); run(); });
 setAuto();
 // The open tab is kept in the address (#patents, #worldbank, #import, #about…), so reloading the page stays on it.
+aiCheck();
 { const start = ({ "#about": "about", "#worldbank": "wb", "#patents": "pat", "#import": "file" })[location.hash];
   if (start) setMode(start); else run(); }
 loadSite();
